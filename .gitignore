@@ -1,6 +1,52 @@
+### Java ###
 *.class
 
 # Package Files #
 *.jar
-*.war
-*.ear
+
+### Eclipse ###
+.metadata
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.settings/
+.loadpath
+
+# External tool builders
+.externalToolBuilders/
+
+# Locally stored "Eclipse launch configurations"
+*.launch
+
+# CDT-specific
+.cproject
+
+# PDT-specific
+.buildpath
+
+# sbteclipse plugin 
+.target
+/target
+
+.project
+.classpath
+
+### Maven ###
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.next
+release.properties
+
+### Jsystem ###
+runnerState.properties
+jsystemProject.properties
+jsystem*
+*.log
+log/
+
+
