@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?><sut validators="">
+	<seeTestClient>
+		<class>com.mobilecore.automation.infra.SeeTestClient</class>
+		<mHost>localhost</mHost>
+		<mPort>8889</mPort>
+		<mProjectBaseDirectory>C:\Users\lior_g\workspace\project3
+		</mProjectBaseDirectory>
+		<mSeetestExecutable>C:\"Program Files (x86)"\Experitest\SeeTest\studio.exe</mSeetestExecutable>
+	</seeTestClient>
+</sut>
