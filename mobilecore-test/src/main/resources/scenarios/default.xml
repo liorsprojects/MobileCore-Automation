@@ -17,10 +17,10 @@
     </target>
     <target name="t0">
         <jsystem showoutput="true">
-            <sysproperty key="jsystem.uuid" value="0d0a660a-2858-44f9-aab8-6814129cc760"/>
+            <sysproperty key="jsystem.uuid" value="10f5f799-94fb-4e3e-8a39-3830939e2062"/>
             <sysproperty key="jsystem.parent.uuid" value="${jsystem.parent.uuid}.${jsystem.uuid}"/>
             <sysproperty key="jsystem.parent.name" value="${jsystem.parent.name}.${ant.project.name}"/>
-            <test name="com.mobilecore.automation.tests.SeeTests.testFullDownloadFlow"/>
+            <test name="com.mobilecore.automation.tests.SeeTests.testOfferwallFullDownloadFlow"/>
         </jsystem>
     </target>
 </project>

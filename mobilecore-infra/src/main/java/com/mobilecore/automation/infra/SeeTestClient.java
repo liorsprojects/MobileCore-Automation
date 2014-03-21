@@ -69,12 +69,12 @@ public class SeeTestClient extends SystemObjectImpl {
 		report.report("stop Seetest service " + (success ? "succeed " : "fail"));
 	}
 
-	public void waitForLogcatMessage(String filter, int timeout, String... messageFilters) throws Exception {
+	public void waitForLogcatMessage(String filter, int reportOnFail ,int timeout, String... messageFilters) throws Exception {
 		
 		report.report("wait for logcat message filterd by " + filter + " and contains: " + FormatUtils.stringArrayToString(messageFilters, ","));
 		LogcatMessageWaiter logcatMessageWaiter = new LogcatMessageWaiter();
 		if (!logcatMessageWaiter.wait(filter, timeout, messageFilters)) {
-			report.report("log not found", Reporter.FAIL);
+			report.report("log not found", reportOnFail);
 		} else {
 			report.report("log found");
 		}
@@ -88,7 +88,53 @@ public class SeeTestClient extends SystemObjectImpl {
 	public Client getClient() {
 		return mSeetestClient;
 	}
+	
+	public void waitForElement(SeeTestElement element, int waitTimeout) throws Exception {
+		if(!mSeetestClient.waitForElement(element.getZone().getValue(), element.getName(), element.getIndex(), waitTimeout)) {
+			throw new Exception("Timeout: Element " + element.getName() + " not found.");
+		}
+		report.report("Element " + element.getName() + "found");
+	}
+	
+	public void waitForElementToVanish(SeeTestElement element, int waitTimeout) throws Exception {
+		if(!mSeetestClient.waitForElementToVanish(element.getZone().getValue(), element.getName(), element.getIndex(), waitTimeout)) {
+			throw new Exception("Timeout: Element " + element.getName() + " did not vanish.");
+		}
+	}
+	
+	public String elementGetText(SeeTestElement element) throws Exception {
+		String text = null;
+		if(!mSeetestClient.isElementFound(element.getZone().getValue(), element.getName(), element.getIndex())) {
+			throw new Exception("element " + element.getName() + " not found");
+		}
+		text = mSeetestClient.elementGetText(element.getZone().getValue(), element.getName(), element.getIndex());
+		if(text == null) {
+			throw new Exception("element " + element.getName() + " does not have text property");
+		}
+		return text;
+	}
+	
+	public void click(SeeTestElement element, int count) {
+		mSeetestClient.verifyElementFound(element.getZone().getValue(), element.getName(), element.getIndex());
+		mSeetestClient.click(element.getZone().getValue(), element.getName(), element.getIndex(), count);
+		report.report("click on element " + element.getName());
+	}
+	
+	/**
+	 * 
+	 * @param element - string identifier or well formed selector
+	 * @param waitTimeout - how long to wait for an element in millis 
+	 * @param count - click count
+	 * @return
+	 * @throws Exception 
+	 */
+	public void waitForElementAndClick(SeeTestElement element, int waitTimeout, int count) throws Exception {
 
+		waitForElement(element, waitTimeout);
+		mSeetestClient.click(element.getZone().getValue(), element.getName(), element.getIndex(), count);
+		report.report("click on element " + element.getName());
+	}
+	
 	public void clearLogcat() {
 		report.report("clear logcat");
 		mSeetestClient.run("logcat -c");
@@ -143,7 +189,7 @@ public class SeeTestClient extends SystemObjectImpl {
 		SeeTestClient client = new SeeTestClient();
 		// client.waiter.wait("\"RS\"",10000 ,"\"RS\":\"D\"",
 		// "\"Flow\":\"offerwall\"");
-		client.waitForLogcatMessage("OfferwallManager", 10000, "from:READY_TO_SHOW , to:SHOWING");
+		client.waitForLogcatMessage("OfferwallManager", Reporter.FAIL ,10000, "from:READY_TO_SHOW , to:SHOWING");
 	}
 
 	@Deprecated
@@ -167,4 +213,8 @@ public class SeeTestClient extends SystemObjectImpl {
 		}
 
 	}
+
+	
+
+	
 }
