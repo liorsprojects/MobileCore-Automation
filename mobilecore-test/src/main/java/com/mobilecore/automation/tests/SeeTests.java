@@ -10,17 +10,16 @@ import com.mobilecore.automation.infra.SeeTestClient;
 
 public class SeeTests extends SystemTestCase4 {
 
-	private static SeeTestClient seeTestClient;
+	private static SeeTestClient seeTestClient;	
 	
 	@Before
 	public void setUp() throws Exception {
-	
+		report.step("setup");
 		if(seeTestClient == null) {
+			report.report("initialize seeTestClient SystemObject");
 			seeTestClient = (SeeTestClient) system.getSystemObject("seeTestClient");
 		}
-		
-		seeTestClient.startSeetestService();
-		
+				
 		seeTestClient.clearLogcat();
 		
 		seeTestClient.getClient().setDevice("adb:Galaxy Nexus");
@@ -47,6 +46,7 @@ public class SeeTests extends SystemTestCase4 {
 			report.report("offer wall didnt show or element not present (\"noThanks\")", false);
 		}
 		
+		seeTestClient.waitForLogcatMessage("\"RS\"",10000 ,"\"RS\":\"W\"", "\"Flow\":\"offerwall\"");
 		seeTestClient.waitForLogcatMessage("\"RS\"",10000 ,"\"RS\":\"D\"", "\"Flow\":\"offerwall\"");
 
 		String appName = seeTestClient.getClient().elementGetText("WEB", "css=.title", 0);
@@ -56,18 +56,53 @@ public class SeeTests extends SystemTestCase4 {
 		if (!seeTestClient.getClient().waitForElement("WEB", "css=.inner_item", 0, 5000)) {
 			report.report("offer wall didnt show or element not present (\"inner_item\")", false);
 		}
-
-		seeTestClient.getClient().click("WEB", "css=.inner_item", 0, 1);
 		
+		seeTestClient.getClient().click("WEB", "css=.inner_item", 0, 1);
+		seeTestClient.waitForLogcatMessage("\"RS\"",10000 ,"\"RS\":\"C\"", "\"Flow\":\"offerwall\"");
+		
+		report.report("waiting for report \"RS\":\"S\"");
+		seeTestClient.waitForLogcatMessage("\"RS\"",30000 ,"\"RS\":\"S\"", "\"Flow\":\"offerwall\"");
+		
+		report.step("navigate to market");
+				
 		if (!seeTestClient.getClient().waitForElement("default", "INSTALL", 0, 10000)) {
 			report.report("could not find INSTALL element", false);
 		}
 		seeTestClient.getClient().click("default", "INSTALL", 0, 1);
+		report.step("click on INSTALL");
 		
 		if (!seeTestClient.getClient().waitForElement("default", "ACCEPT", 0, 10000)) {
 			report.report("could not find ACCEPT element", false);
 		}		
 		seeTestClient.getClient().click("default", "ACCEPT", 0, 1);
+		report.report("click on ACCEPT");
+		
+		if (!seeTestClient.getClient().waitForElement("default", "PLAYSTORE_DOWNLOADING", 0, 10000)) {
+			report.report("download didnt start after 10000 millis");
+		}
+		report.report("start downloading...");
+		if (!seeTestClient.getClient().waitForElementToVanish("default", "PLAYSTORE_DOWNLOADING", 0, 10000)) {
+			report.report("download didnt start after 10000 millis");
+		}	
+		report.report("downloading complete");
+		
+		report.report("start install...");
+		if (!seeTestClient.getClient().waitForElement("default", "UNINSTALL", 0, 600000)) {
+			report.report("install did not complete after 10 minutes");
+		}
+		report.report("installing complete");
+		
+		report.report("waiting for report \"RS\":\"+\"");
+		seeTestClient.waitForLogcatMessage("\"RS\"",30000 ,"\"RS\":\"+\"", "\"Flow\":\"offerwall\"");
+		
+		
+		report.report("unstalling...");
+		seeTestClient.getClient().click("default", "UNINSTALL", 0, 1);
+		
+		
+		seeTestClient.getClient().applicationClearData("com.mobilecore.mctester/.MainActivity");
+		seeTestClient.getClient().applicationClose("com.mobilecore.mctester/.MainActivity");
+		seeTestClient.getClient().applicationClose("com.android.vending");
 		
 //		adb.startUiAutomatorServer();
 //		uiautomatorClient = DeviceClient.getUiAutomatorClient("http://127.0.0.1:9008");
@@ -134,7 +169,6 @@ public class SeeTests extends SystemTestCase4 {
 	@After
 	public void tearDown() throws Exception {
 		seeTestClient.getClient().generateReport();
-		seeTestClient.stopSeetestService();
 	}
 }
 

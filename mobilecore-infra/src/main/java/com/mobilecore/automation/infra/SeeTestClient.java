@@ -7,6 +7,7 @@ import jsystem.framework.report.Reporter;
 import jsystem.framework.system.SystemObjectImpl;
 
 import com.experitest.client.Client;
+import com.mobilecore.automation.infra.Utils.FormatUtils;
 
 public class SeeTestClient extends SystemObjectImpl {
 
@@ -27,10 +28,11 @@ public class SeeTestClient extends SystemObjectImpl {
 
 	// TODO - retry mechanism
 	public void startSeetestService() throws Exception {
-
+		report.report("starting seetest service");
 		try {
 			ProcessBuilder pb = new ProcessBuilder("cmd.exe", "/C", seetestExecutable, "-hide");
 			pb.start();
+			report.report("execute connad: " + seetestExecutable+ " -hide");
 			Thread.sleep(2000);
 			String line;
 
@@ -47,13 +49,13 @@ public class SeeTestClient extends SystemObjectImpl {
 			report.report("fail to run seetest in hide mode");
 		}
 		report.report("waiting for seetest to load");
-		Thread.sleep(10000);
+		Thread.sleep(5000);
 
 	}
 
 	public void stopSeetestService() throws Exception {
+		
 		boolean success = false;
-
 		Process pr =  Runtime.getRuntime().exec("taskkill /IM " + "studio.exe");
 		BufferedReader in = new BufferedReader(new InputStreamReader(pr.getInputStream()));
 		String line;
@@ -68,15 +70,18 @@ public class SeeTestClient extends SystemObjectImpl {
 	}
 
 	public void waitForLogcatMessage(String filter, int timeout, String... messageFilters) throws Exception {
+		
+		report.report("wait for logcat message filterd by " + filter + " and contains: " + FormatUtils.stringArrayToString(messageFilters, ","));
 		LogcatMessageWaiter logcatMessageWaiter = new LogcatMessageWaiter();
 		if (!logcatMessageWaiter.wait(filter, timeout, messageFilters)) {
-			report.report("could not find log filtered by " + filter, Reporter.FAIL);
+			report.report("log not found", Reporter.FAIL);
 		} else {
-			report.report("message found");
+			report.report("log found");
 		}
 	}
-
+	
 	public void sleep(int timeInMillis) {
+		report.report("waiting for " + timeInMillis + "millis");
 		mSeetestClient.sleep(timeInMillis);
 	}
 
@@ -85,6 +90,7 @@ public class SeeTestClient extends SystemObjectImpl {
 	}
 
 	public void clearLogcat() {
+		report.report("clear logcat");
 		mSeetestClient.run("logcat -c");
 	}
 
@@ -123,6 +129,11 @@ public class SeeTestClient extends SystemObjectImpl {
 	@Override
 	public void close() {
 		report.report("closing seetest system object");
+		try {
+			stopSeetestService();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		super.close();
 	}
 

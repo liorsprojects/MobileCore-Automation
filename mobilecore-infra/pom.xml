@@ -32,7 +32,7 @@
 			<artifactId>xmlRpcCommon</artifactId>
 			<version>1.0</version>
 		</dependency>
-			<dependency>
+		<dependency>
 			<groupId>seetest</groupId>
 			<artifactId>xmlRpcClient</artifactId>
 			<version>1.0</version>
@@ -41,6 +41,11 @@
 			<groupId>seetest</groupId>
 			<artifactId>imageClient</artifactId>
 			<version>1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.3.1</version>
 		</dependency>
 	</dependencies>
 	<build>
