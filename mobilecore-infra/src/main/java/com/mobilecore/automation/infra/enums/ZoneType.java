@@ -15,13 +15,4 @@ public enum ZoneType {
 	public String getValue() {
 		return mZone;
 	}
-
-	public static ZoneType convert(String zone) {
-		for (ZoneType zoneType : ZoneType.values()) {
-			if (zoneType.getValue().equals(zone)) {
-				return zoneType;
-			}
-		}
-		return null;
-	}
 }

@@ -8,8 +8,10 @@ import jsystem.framework.system.SystemObjectImpl;
 
 import com.experitest.client.Client;
 import com.mobilecore.automation.infra.Utils.FormatUtils;
+import com.mobilecore.automation.infra.enums.FlowType;
+import com.mobilecore.automation.infra.enums.RSType;
 
-public class SeeTestClient extends SystemObjectImpl {
+public class MobileCoreClient extends SystemObjectImpl {
 
 	private Client mSeetestClient;
 	private String host;
@@ -49,34 +51,50 @@ public class SeeTestClient extends SystemObjectImpl {
 			report.report("fail to run seetest in hide mode");
 		}
 		report.report("waiting for seetest to load");
-		Thread.sleep(5000);
+		Thread.sleep(8000);
 
 	}
 
 	public void stopSeetestService() throws Exception {
 		
 		boolean success = false;
-		Process pr =  Runtime.getRuntime().exec("taskkill /IM " + "studio.exe");
+		Process pr =  Runtime.getRuntime().exec("taskkill /IM " + "studio.exe " + "/t /F");
 		BufferedReader in = new BufferedReader(new InputStreamReader(pr.getInputStream()));
 		String line;
 		while ((line = in.readLine()) != null) {
 			if (line.contains("SUCCESS")) {
 				success = true;
-			} Runtime.getRuntime().exec("taskkill /IM " + "studio.exe"); Runtime.getRuntime().exec("taskkill /IM " + "studio.exe");
+			}
 		}
 		pr.waitFor();
 		in.close();
 		report.report("stop Seetest service " + (success ? "succeed " : "fail"));
 	}
 
-	public void waitForLogcatMessage(String filter, int reportOnFail ,int timeout, String... messageFilters) throws Exception {
-		
+	public boolean waitForLogcatMessage(String filter, int reportOnFail ,int timeout, boolean reportFound, String... messageFilters) throws Exception {
+		boolean found = false;
 		report.report("wait for logcat message filterd by " + filter + " and contains: " + FormatUtils.stringArrayToString(messageFilters, ","));
 		LogcatMessageWaiter logcatMessageWaiter = new LogcatMessageWaiter();
-		if (!logcatMessageWaiter.wait(filter, timeout, messageFilters)) {
-			report.report("log not found", reportOnFail);
-		} else {
-			report.report("log found");
+		StringBuffer sb = null;
+		found = logcatMessageWaiter.wait(filter, timeout, messageFilters); 
+		if(reportFound) {
+			sb = new StringBuffer(filter);
+			for (String string : messageFilters) {
+				sb.append(", ").append(string);
+			}
+			report.report(found? "" : "didn't " + "found log contains: " + sb.toString());
+		}
+		return found;
+	}
+	
+	public void waitForRS(RSType rs, FlowType flow, int reportOnFail, long timeout) throws Exception {
+		report.step("waiting for report: RS=\"" + rs.getValue() + "\", Flow=\"" + flow.getValue() + "\"" );
+		if(!waitForLogcatMessage("\"RS\"", reportOnFail ,120000, false ,rs.getValueAsReportString(), flow.getValueAsReportString())) {
+			
+			report.report("could not find log: RS=\"" + rs.getValue() + "\", Flow=\"" + flow.getValue() + "\"" + "after " + timeout + " milliseconds");
+		}
+		else {
+			report.report("found log: RS=\"" + rs.getValue() + "\", Flow=\"" + flow.getValue() + "\"");
 		}
 	}
 	
@@ -93,7 +111,7 @@ public class SeeTestClient extends SystemObjectImpl {
 		if(!mSeetestClient.waitForElement(element.getZone().getValue(), element.getName(), element.getIndex(), waitTimeout)) {
 			throw new Exception("Timeout: Element " + element.getName() + " not found.");
 		}
-		report.report("Element " + element.getName() + "found");
+		report.report("Element " + element.getName() + " found");
 	}
 	
 	public void waitForElementToVanish(SeeTestElement element, int waitTimeout) throws Exception {
@@ -133,6 +151,16 @@ public class SeeTestClient extends SystemObjectImpl {
 		waitForElement(element, waitTimeout);
 		mSeetestClient.click(element.getZone().getValue(), element.getName(), element.getIndex(), count);
 		report.report("click on element " + element.getName());
+	}
+	
+	public void report(String message) {
+		report.report(message, true);
+		mSeetestClient.report(message, true);
+	}
+	
+	public void report(String message, boolean status) {
+		report.report(message, status);
+		mSeetestClient.report(message, status);
 	}
 	
 	public void clearLogcat() {
@@ -186,10 +214,10 @@ public class SeeTestClient extends SystemObjectImpl {
 	// ===================== Example use =====================
 	public static void main(String[] args) throws Exception {
 
-		SeeTestClient client = new SeeTestClient();
+		MobileCoreClient client = new MobileCoreClient();
 		// client.waiter.wait("\"RS\"",10000 ,"\"RS\":\"D\"",
 		// "\"Flow\":\"offerwall\"");
-		client.waitForLogcatMessage("OfferwallManager", Reporter.FAIL ,10000, "from:READY_TO_SHOW , to:SHOWING");
+		//client.waitForLogcatMessage("OfferwallManager", Reporter.FAIL ,10000, "from:READY_TO_SHOW , to:SHOWING");
 	}
 
 	@Deprecated

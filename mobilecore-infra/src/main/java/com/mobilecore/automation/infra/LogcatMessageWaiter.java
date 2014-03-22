@@ -23,7 +23,6 @@ public class LogcatMessageWaiter {
 	public boolean wait(String filter, long timeout, String... messageFilters) throws Exception {
 
 		FindReportTask task = new FindReportTask(filter, messageFilters);
-		//FindReportTask task1 = new FindReportTask("\"RS\"", "\"RS\":\"D\"", "\"Flow\":\"offerwall\"");
 		task.setListener(mListener);
 		Thread t = new Thread(task);
 		t.start();
