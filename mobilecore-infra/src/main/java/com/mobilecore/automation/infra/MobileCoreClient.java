@@ -78,11 +78,7 @@ public class MobileCoreClient extends SystemObjectImpl {
 		StringBuffer sb = null;
 		found = logcatMessageWaiter.wait(filter, timeout, messageFilters); 
 		if(reportFound) {
-			sb = new StringBuffer(filter);
-			for (String string : messageFilters) {
-				sb.append(", ").append(string);
-			}
-			report.report(found? "" : "didn't " + "found log contains: " + sb.toString());
+			report.report((found? "" : "didn't ") + "found log contains: " + FormatUtils.stringArrayToString(messageFilters, ", "));
 		}
 		return found;
 	}
@@ -90,11 +86,10 @@ public class MobileCoreClient extends SystemObjectImpl {
 	public void waitForRS(RSType rs, FlowType flow, int reportOnFail, long timeout) throws Exception {
 		report.step("waiting for report: RS=\"" + rs.getValue() + "\", Flow=\"" + flow.getValue() + "\"" );
 		if(!waitForLogcatMessage("\"RS\"", reportOnFail ,120000, false ,rs.getValueAsReportString(), flow.getValueAsReportString())) {
-			
-			report.report("could not find log: RS=\"" + rs.getValue() + "\", Flow=\"" + flow.getValue() + "\"" + "after " + timeout + " milliseconds");
+			report.step("could not find log: RS=\"" + rs.getValue() + "\", Flow=\"" + flow.getValue() + "\"" + "after " + timeout + " milliseconds");
 		}
 		else {
-			report.report("found log: RS=\"" + rs.getValue() + "\", Flow=\"" + flow.getValue() + "\"");
+			report.step("found log: RS=\"" + rs.getValue() + "\", Flow=\"" + flow.getValue() + "\"");
 		}
 	}
 	
