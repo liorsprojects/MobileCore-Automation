@@ -71,11 +71,10 @@ public class MobileCoreClient extends SystemObjectImpl {
 		report.report("stop Seetest service " + (success ? "succeed " : "fail"));
 	}
 
-	public boolean waitForLogcatMessage(String filter, int reportOnFail ,int timeout, boolean reportFound, String... messageFilters) throws Exception {
+	public boolean waitForLogcatMessage(String filter, int reportOnFail ,long timeout, boolean reportFound, String... messageFilters) throws Exception {
 		boolean found = false;
 		report.report("wait for logcat message filterd by " + filter + " and contains: " + FormatUtils.stringArrayToString(messageFilters, ","));
 		LogcatMessageWaiter logcatMessageWaiter = new LogcatMessageWaiter();
-		StringBuffer sb = null;
 		found = logcatMessageWaiter.wait(filter, timeout, messageFilters); 
 		if(reportFound) {
 			report.report((found? "" : "didn't ") + "found log contains: " + FormatUtils.stringArrayToString(messageFilters, ", "));
@@ -85,8 +84,8 @@ public class MobileCoreClient extends SystemObjectImpl {
 	
 	public void waitForRS(RSType rs, FlowType flow, int reportOnFail, long timeout) throws Exception {
 		report.step("waiting for report: RS=\"" + rs.getValue() + "\", Flow=\"" + flow.getValue() + "\"" );
-		if(!waitForLogcatMessage("\"RS\"", reportOnFail ,120000, false ,rs.getValueAsReportString(), flow.getValueAsReportString())) {
-			report.step("could not find log: RS=\"" + rs.getValue() + "\", Flow=\"" + flow.getValue() + "\"" + "after " + timeout + " milliseconds");
+		if(!waitForLogcatMessage("\"RS\"", reportOnFail ,timeout, false ,rs.getValueAsReportString(), flow.getValueAsReportString())) {
+			report.report("could not find log: RS=\"" + rs.getValue() + "\", Flow=\"" + flow.getValue() + "\"" + "after " + timeout + " milliseconds", reportOnFail);
 		}
 		else {
 			report.step("found log: RS=\"" + rs.getValue() + "\", Flow=\"" + flow.getValue() + "\"");

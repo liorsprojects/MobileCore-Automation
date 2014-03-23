@@ -53,7 +53,7 @@ public class SeeTests extends SystemTestCase4 {
 		mobileCoreClient.waitForLogcatMessage("OfferwallManager", Reporter.FAIL, 15000, true, "from:LOADING , to:READY_TO_SHOW");
 		report.step("offerwall is ready to show");
 		
-		mobileCoreClient.report("wait 3 second just in case");
+		mobileCoreClient.report("wait 6 second just in case");
 		mobileCoreClient.sleep(6000);
 
 		mobileCoreClient.click(Elements.MCTesterElement.SHOW_IF_READY.getElement(), 1);
@@ -73,6 +73,8 @@ public class SeeTests extends SystemTestCase4 {
 		mobileCoreClient.waitForRS(RSType.STORE, FlowType.OFFERWALL, Reporter.FAIL, 10000);
 		report.step("navigated to the market");
 
+		//TODO - add "right application verification" (native, text=<app name> 
+		
 		//TODO - abstraction: make function in Helper class
 		mobileCoreClient.waitForElementAndClick(Elements.MarketElement.INSTALL_BUTTON.getElement(), 10000, 1);
 		mobileCoreClient.report("click on INSTALL");
@@ -108,11 +110,123 @@ public class SeeTests extends SystemTestCase4 {
 		mobileCoreClient.getClient().applicationClose("com.android.vending");
 	}
 
+	@Test
+	@TestProperties(name="close offerwall with X button", paramsInclude={})
+	public void testOfferwallCloseWithXButton() throws Exception {
+		mobileCoreClient.waitForElement(Elements.MCTesterElement.APP_TITLE.getElement(), 10000);
+		report.step("app started");
+
+		mobileCoreClient.waitForLogcatMessage("OfferwallManager", Reporter.FAIL, 15000, true, "mReadyToShowOfferwallFromFlow to true");
+		report.step("offerwall is ready to show");
+		mobileCoreClient.waitForLogcatMessage("MobileCoreReport", Reporter.FAIL, 15000, true, "ftue_shown");
+		
+		mobileCoreClient.click(Elements.MCTesterElement.SHOW_IF_READY.getElement(), 1);
+		report.step("click 'Show if ready' button");
+
+		mobileCoreClient.waitForLogcatMessage("OfferwallManager", Reporter.FAIL ,15000 , true, "from:READY_TO_SHOW , to:SHOWING");
+		
+		mobileCoreClient.waitForRS(RSType.WALL, FlowType.OFFERWALL, Reporter.FAIL, 10000);
+		mobileCoreClient.waitForRS(RSType.IMPRESSION, FlowType.OFFERWALL, Reporter.FAIL, 10000);
+		
+		mobileCoreClient.waitForElementAndClick(Elements.OfferwallElement.X_BUTTON.getElement(), 10000, 1);
+		//TODO - verify gone...
+		mobileCoreClient.waitForRS(RSType.CLOSE, FlowType.OFFERWALL, Reporter.FAIL, 10000);
+		
+		mobileCoreClient.getClient().applicationClearData("com.mobilecore.mctester");
+		mobileCoreClient.getClient().applicationClose("com.mobilecore.mctester");
+		mobileCoreClient.getClient().applicationClose("com.android.vending");
+	}
+	
+	@Test
+	@TestProperties(name="close offerwall with BACK button", paramsInclude={})
+	public void testOfferwallCloseWithBackButton() throws Exception {
+		mobileCoreClient.waitForElement(Elements.MCTesterElement.APP_TITLE.getElement(), 10000);
+		report.step("app started");
+
+		mobileCoreClient.waitForLogcatMessage("OfferwallManager", Reporter.FAIL, 15000, true, "from:LOADING , to:READY_TO_SHOW");
+		report.step("offerwall is ready to show");
+		
+		//TODO - THIS IS A BUG WORKAROUND -> in this state the wall isn't really ready to show... (all tests)
+		mobileCoreClient.report("wait 6 second just in case");
+		mobileCoreClient.sleep(6000);
+
+		mobileCoreClient.click(Elements.MCTesterElement.SHOW_IF_READY.getElement(), 1);
+		report.step("click 'Show if ready' button");
+
+		mobileCoreClient.waitForLogcatMessage("OfferwallManager", Reporter.FAIL ,15000 , true, "from:READY_TO_SHOW , to:SHOWING");
+		
+		mobileCoreClient.waitForRS(RSType.WALL, FlowType.OFFERWALL, Reporter.FAIL, 10000);
+		mobileCoreClient.waitForRS(RSType.IMPRESSION, FlowType.OFFERWALL, Reporter.FAIL, 10000);
+		
+		mobileCoreClient.getClient().sendText("{ESC}");
+		mobileCoreClient.waitForRS(RSType.BACK, FlowType.OFFERWALL, Reporter.FAIL, 10000);
+		
+		mobileCoreClient.getClient().applicationClearData("com.mobilecore.mctester");
+		mobileCoreClient.getClient().applicationClose("com.mobilecore.mctester");
+		mobileCoreClient.getClient().applicationClose("com.android.vending");
+	}
+
+	@Test
+	@TestProperties(name="close stickeez handle with X button", paramsInclude={})
+	public void testStickeezHandleCloseWithXButton() throws Exception {
+		mobileCoreClient.waitForElement(Elements.MCTesterElement.APP_TITLE.getElement(), 10000);
+		report.step("app started");
+
+		mobileCoreClient.waitForLogcatMessage("StickeezManager", Reporter.FAIL, 15000, true, "checkAllReady switching state | called");
+		report.step("stickeez is ready");
+		mobileCoreClient.waitForLogcatMessage("MobileCoreReport", Reporter.FAIL, 15000, true, "ftue_shown");
+		
+		mobileCoreClient.click(Elements.MCTesterElement.SHOW_STICKEE.getElement(), 1);
+		report.step("click 'Show stickke' button");
+		
+		//TODO - insert logic to determine if the flow is regular stickeez-handle or stickeez-direct-handle
+		//mobileCoreClient.waitForRS(RSType.IMPRESSION, FlowType.OFFERWALL, Reporter.FAIL, 10000);
+		
+		mobileCoreClient.waitForElementAndClick(Elements.StickeezElement.X_BUTTON.getElement(), 10000, 1);
+		
+		//TODO - verify gone...
+		//again insert logic for direct or regular flow 
+		//mobileCoreClient.waitForRS(RSType.CLOSE, FlowType.OFFERWALL, Reporter.FAIL, 10000);
+		mobileCoreClient.waitForElementToVanish(Elements.StickeezElement.STICKEEZ_HANDLE.getElement(), 10000);
+		
+		mobileCoreClient.getClient().applicationClearData("com.mobilecore.mctester");
+		mobileCoreClient.getClient().applicationClose("com.mobilecore.mctester");
+		mobileCoreClient.getClient().applicationClose("com.android.vending");
+	}
+	
+	@Test
+	@TestProperties(name="open/close slider with handle", paramsInclude={})
+	public void testSliderOpenClose() throws Exception {
+		mobileCoreClient.waitForElement(Elements.MCTesterElement.APP_TITLE.getElement(), 10000);
+		report.step("app started");
+		mobileCoreClient.sleep(3000);
+		
+		openSlider();
+		mobileCoreClient.sleep(2000);
+		
+		closeSlider();
+		mobileCoreClient.sleep(2000);
+				
+		mobileCoreClient.getClient().applicationClearData("com.mobilecore.mctester");
+		mobileCoreClient.getClient().applicationClose("com.mobilecore.mctester");
+		mobileCoreClient.getClient().applicationClose("com.android.vending");
+	}
+	
 	@After
 	public void tearDown() throws Exception {
 		mobileCoreClient.getClient().generateReport();
 	}
 
+	// INFRA CANIDATE FUNCTION
+	
+	public void openSlider() {
+		mobileCoreClient.getClient().drag("NATIVE", "contentDescription=slider-handle", 0, 300, 0);
+	}
+	
+	public void closeSlider() {
+		mobileCoreClient.getClient().drag("NATIVE", "contentDescription=slider-handle", 0, -300, 0);
+	}
+	
 	public long getInstallReportTimeout() {
 		return installReportTimeout;
 	}
