@@ -9,10 +9,16 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.mobilecore.automation.infra.ADBConnection;
 import com.mobilecore.automation.infra.MobileCoreClient;
+import com.mobilecore.automation.infra.SeeTestElement;
 import com.mobilecore.automation.infra.enums.Elements;
 import com.mobilecore.automation.infra.enums.FlowType;
 import com.mobilecore.automation.infra.enums.RSType;
+import com.mobilecore.automation.infra.enums.SliderToggleType;
+import com.mobilecore.automation.infra.enums.ZoneType;
+import com.mobilecore.automation.infra.fiddler.FiddlerApi;
+import com.mobilecore.automation.tests.utils.ImageFlowHtmlReport;
 
 public class SeeTests extends SystemTestCase4 {
 
@@ -21,9 +27,11 @@ public class SeeTests extends SystemTestCase4 {
 	// test parameters
 	private long installReportTimeout = 120000;
 	private boolean uninstallAppDownload = true;
+	private static ADBConnection adb;
+	private ImageFlowHtmlReport imageFlowHtmlReport;
 	
 	//TODO - ask ohad... maby enum? - after fiddler support
-	private String ow_id = "not impemented yet";
+	//private String ow_id = "not impemented yet";
 
 	@Before
 	public void setUp() throws Exception {
@@ -33,6 +41,9 @@ public class SeeTests extends SystemTestCase4 {
 			mobileCoreClient = (MobileCoreClient) system.getSystemObject("mobileCoreClient");
 			mobileCoreClient.report("initialize mobileCoreClient SystemObject complete");
 		}
+		if(adb == null) {
+			adb = mobileCoreClient.getAdb();
+		}
 
 		mobileCoreClient.report("setting device adb:Galaxy Nexus");
 		mobileCoreClient.getClient().setDevice("adb:Galaxy Nexus");
@@ -41,6 +52,7 @@ public class SeeTests extends SystemTestCase4 {
 		
 		mobileCoreClient.report("launching MCTester");
 		mobileCoreClient.getClient().launch("com.mobilecore.mctester/.MainActivity", true, true);
+		imageFlowHtmlReport = new ImageFlowHtmlReport();
 	}
 
 	@Test
@@ -158,7 +170,7 @@ public class SeeTests extends SystemTestCase4 {
 		mobileCoreClient.waitForRS(RSType.WALL, FlowType.OFFERWALL, Reporter.FAIL, 10000);
 		mobileCoreClient.waitForRS(RSType.IMPRESSION, FlowType.OFFERWALL, Reporter.FAIL, 10000);
 		
-		mobileCoreClient.getClient().sendText("{ESC}");
+		mobileCoreClient.clickBackButton();
 		mobileCoreClient.waitForRS(RSType.BACK, FlowType.OFFERWALL, Reporter.FAIL, 10000);
 		
 		mobileCoreClient.getClient().applicationClearData("com.mobilecore.mctester");
@@ -201,12 +213,73 @@ public class SeeTests extends SystemTestCase4 {
 		report.step("app started");
 		mobileCoreClient.sleep(3000);
 		
-		openSlider();
+		mobileCoreClient.toggleSlider(SliderToggleType.OPEN);
 		mobileCoreClient.sleep(2000);
 		
-		closeSlider();
-		mobileCoreClient.sleep(2000);
+		mobileCoreClient.toggleSlider(SliderToggleType.CLOSE);
+		mobileCoreClient.sleep(4000);
 				
+		mobileCoreClient.getClient().applicationClearData("com.mobilecore.mctester");
+		mobileCoreClient.getClient().applicationClose("com.mobilecore.mctester");
+		mobileCoreClient.getClient().applicationClose("com.android.vending");
+	}
+	
+	@Test
+	@TestProperties(name="display all offerwalls in all devices", paramsInclude={})
+	public void testDisplayOfferwallTypes() throws Exception {
+		mobileCoreClient.waitForElement(Elements.MCTesterElement.APP_TITLE.getElement(), 10000);
+		report.step("app started");
+		mobileCoreClient.sleep(3000);
+		
+		String[] owIds = {"original offerwall", "1_bnr_avg_green", "1_bnr_avg_white", "1_bnr_full_sqr_orng", "1_bnr_ic_sqr_cntr","1_bnr_ic_rect_cntr","1_bnr_rect","1_bnr_sqr","1_bnr_sqr_cntr_header","2_avg_green", "2_ftb", "2_ic_big", "2_ic_big_xtreme", "2_redbend", "2_run_cow", "2_sharklab", "bn_ic_2", "bn_ic_4"};
+		
+		mobileCoreClient.waitForLogcatMessage("OfferwallManager", Reporter.FAIL, 15000, true, "mReadyToShowOfferwallFromFlow to true");
+		report.step("offerwall is ready to show");
+		mobileCoreClient.waitForLogcatMessage("MobileCoreReport", Reporter.FAIL, 15000, true, "ftue_shown");
+		
+		for(int i=0; i<owIds.length; i++) {
+			
+			mobileCoreClient.click(Elements.MCTesterElement.SHOW_IF_READY.getElement(), 1);
+			report.step("click 'Show if ready' button");
+			report.step("showing: " + owIds[i]);
+			mobileCoreClient.fiddlerCommand(FiddlerApi.setFeedJsonPath("offerwall", "C:\\Fiddler\\ow_id.json"));
+			
+			if((i+1) == owIds.length){
+				report.report("next wall is the last in the list so we are not setting the next one to anything");
+			} else {
+				mobileCoreClient.fiddlerCommand(FiddlerApi.modifyFeed("offerwall", owIds[i+1], false, true));			
+			}
+			mobileCoreClient.clearLogcat();
+			mobileCoreClient.sleep(2000);
+			
+			imageFlowHtmlReport.addTitledImage(owIds[i], adb.getScreenshotWithAdb(null));
+			SeeTestElement el1 = new SeeTestElement(ZoneType.NATIVE, "contentDescription=offerwall-webview-1", 0);
+			SeeTestElement el2 = new SeeTestElement(ZoneType.NATIVE, "contentDescription=offerwall-webview-2", 0);
+			if(mobileCoreClient.isElementFound(el1)) {
+				mobileCoreClient.clickBackButton();
+				try{
+					mobileCoreClient.waitForElementToVanish(el1, 2000);
+					report.report("offerwall-webview-1 vanish");
+				}catch (Exception e) {
+					
+				}
+			}
+			if(mobileCoreClient.isElementFound(el2)) {
+				mobileCoreClient.clickBackButton();
+				try{
+					mobileCoreClient.waitForElementToVanish(el2, 2000);
+					report.report("offerwall-webview-2 vanish");
+				}catch (Exception e) {
+					
+				}				
+			}
+			mobileCoreClient.sleep(2000);
+		}
+		
+		
+		report.report("screen flow", imageFlowHtmlReport.getHtmlReport(), Reporter.PASS, false, true, false, false);
+		
+		// TODO - move to after...
 		mobileCoreClient.getClient().applicationClearData("com.mobilecore.mctester");
 		mobileCoreClient.getClient().applicationClose("com.mobilecore.mctester");
 		mobileCoreClient.getClient().applicationClose("com.android.vending");
@@ -214,19 +287,13 @@ public class SeeTests extends SystemTestCase4 {
 	
 	@After
 	public void tearDown() throws Exception {
+		if (!isPass()) {
+			imageFlowHtmlReport.addTitledImage("Failed Here", adb.getScreenshotWithAdb(null));
+			report.report("screen flow", imageFlowHtmlReport.getHtmlReport(), Reporter.PASS, false, true, false, false);
+		}
 		mobileCoreClient.getClient().generateReport();
 	}
 
-	// INFRA CANIDATE FUNCTION
-	
-	public void openSlider() {
-		mobileCoreClient.getClient().drag("NATIVE", "contentDescription=slider-handle", 0, 300, 0);
-	}
-	
-	public void closeSlider() {
-		mobileCoreClient.getClient().drag("NATIVE", "contentDescription=slider-handle", 0, -300, 0);
-	}
-	
 	public long getInstallReportTimeout() {
 		return installReportTimeout;
 	}

@@ -8,20 +8,31 @@ import jsystem.framework.system.SystemObjectImpl;
 
 import com.experitest.client.Client;
 import com.mobilecore.automation.infra.Utils.FormatUtils;
+import com.mobilecore.automation.infra.enums.DirectionType;
+import com.mobilecore.automation.infra.enums.Elements;
 import com.mobilecore.automation.infra.enums.FlowType;
 import com.mobilecore.automation.infra.enums.RSType;
+import com.mobilecore.automation.infra.enums.SliderToggleType;
+import com.mobilecore.automation.infra.fiddler.FiddlerJsonRpcClient;
 
 public class MobileCoreClient extends SystemObjectImpl {
 
-	private Client mSeetestClient;
+	// ======= SUT PARAMS =======
 	private String host;
 	private int port;
 	private String projectBaseDirectory;
 	private String seetestExecutable;
+	public FiddlerJsonRpcClient fiddlerClient;
+	// ==== END SUT PARAMS ======
+	
+	private ADBConnection adb;
+	private Client mSeetestClient;
 
 	@Override
 	public void init() throws Exception {
 		super.init();
+		adb = new ADBConnection();
+		adb.init();
 		startSeetestService();
 		mSeetestClient = new Client(host, port);
 		mSeetestClient.setProjectBaseDirectory(projectBaseDirectory);
@@ -71,6 +82,8 @@ public class MobileCoreClient extends SystemObjectImpl {
 		report.report("stop Seetest service " + (success ? "succeed " : "fail"));
 	}
 
+	
+	// ====== LOGCAT =======
 	public boolean waitForLogcatMessage(String filter, int reportOnFail ,long timeout, boolean reportFound, String... messageFilters) throws Exception {
 		boolean found = false;
 		report.report("wait for logcat message filterd by " + filter + " and contains: " + FormatUtils.stringArrayToString(messageFilters, ","));
@@ -91,6 +104,8 @@ public class MobileCoreClient extends SystemObjectImpl {
 			report.step("found log: RS=\"" + rs.getValue() + "\", Flow=\"" + flow.getValue() + "\"");
 		}
 	}
+	// ====== END LOGCAT =======
+	
 	
 	public void sleep(int timeInMillis) {
 		report.report("waiting for " + timeInMillis + "millis");
@@ -106,6 +121,10 @@ public class MobileCoreClient extends SystemObjectImpl {
 			throw new Exception("Timeout: Element " + element.getName() + " not found.");
 		}
 		report.report("Element " + element.getName() + " found");
+	}
+	
+	public boolean isElementFound(SeeTestElement element) {
+		return mSeetestClient.isElementFound(element.getZone().getValue(), element.getName(), element.getIndex());
 	}
 	
 	public void waitForElementToVanish(SeeTestElement element, int waitTimeout) throws Exception {
@@ -147,6 +166,24 @@ public class MobileCoreClient extends SystemObjectImpl {
 		report.report("click on element " + element.getName());
 	}
 	
+	public void toggleSlider(SliderToggleType action) throws Exception {
+		SeeTestElement sliderHandle = Elements.SliderElement.SLIDER_HANDLE.getElement();
+		int xOffset = -1;
+		if(action == SliderToggleType.OPEN) {
+			xOffset = 300;
+		} else if(action == SliderToggleType.CLOSE) {
+			xOffset = -300;
+		} else {
+			throw new Exception("invalid value exception: choose OPEN/CLOSE from the SliderToggleType valuse");
+		}
+		
+		mSeetestClient.drag(sliderHandle.getZone().getValue(), sliderHandle.getName(), sliderHandle.getIndex(), xOffset, 0);
+	}
+	
+	public void closeSlider() {
+		mSeetestClient.drag("NATIVE", "contentDescription=slider-handle", 0, -300, 0);
+	}
+	
 	public void report(String message) {
 		report.report(message, true);
 		mSeetestClient.report(message, true);
@@ -161,6 +198,16 @@ public class MobileCoreClient extends SystemObjectImpl {
 		report.report("clear logcat");
 		mSeetestClient.run("logcat -c");
 	}
+	
+	public void clickBackButton() {
+		mSeetestClient.sendText("{ESC}");
+	}
+	
+	// ======== FIDDLER ========
+	public void fiddlerCommand(String cmd) throws Exception {
+		fiddlerClient.execute(cmd);
+	}
+	// ====== END FIDDLER ======
 
 	public String getHost() {
 		return host;
@@ -192,6 +239,14 @@ public class MobileCoreClient extends SystemObjectImpl {
 
 	public void setSeetestExecutable(String seetestExecutable) {
 		this.seetestExecutable = seetestExecutable;
+	}
+	
+	public FiddlerJsonRpcClient getFiddlerClient() {
+		return fiddlerClient;
+	}
+
+	public void setFiddlerClient(FiddlerJsonRpcClient fiddlerClient) {
+		this.fiddlerClient = fiddlerClient;
 	}
 
 	@Override
@@ -236,6 +291,12 @@ public class MobileCoreClient extends SystemObjectImpl {
 
 	}
 
+	public ADBConnection getAdb() {
+		return adb;
+	}
+
+	
+	
 	
 
 	

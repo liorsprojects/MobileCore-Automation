@@ -5,5 +5,11 @@
 		<port>8889</port>
 		<projectBaseDirectory>C:\Users\lior_g\workspace\project3</projectBaseDirectory>
 		<seetestExecutable>C:\"Program Files (x86)"\Experitest\SeeTest\studio.exe</seetestExecutable>
+		<fiddlerClient>
+        		<class>com.mobilecore.automation.infra.fiddler.FiddlerJsonRpcClient</class>
+        		<executablePath>C:/Fiddler/MobileCoreFiddler/IronSourceFiddler.Client.exe</executablePath>
+			<host>127.0.0.1</host>
+			<port>3333</port>
+    		</fiddlerClient>	
 	</mobileCoreClient>
 </sut>
