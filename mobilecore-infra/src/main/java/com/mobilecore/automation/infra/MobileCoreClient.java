@@ -23,6 +23,7 @@ public class MobileCoreClient extends SystemObjectImpl {
 	private String projectBaseDirectory;
 	private String seetestExecutable;
 	public FiddlerJsonRpcClient fiddlerClient;
+	
 	// ==== END SUT PARAMS ======
 	
 	private ADBConnection adb;
@@ -31,12 +32,12 @@ public class MobileCoreClient extends SystemObjectImpl {
 	@Override
 	public void init() throws Exception {
 		super.init();
-		adb = new ADBConnection();
-		adb.init();
+		report.report("initializing MobileCoreClient...");
 		startSeetestService();
 		mSeetestClient = new Client(host, port);
 		mSeetestClient.setProjectBaseDirectory(projectBaseDirectory);
 		mSeetestClient.setReporter("xml", "reports", "mobile");
+		report.report("initializing MobileCoreClient... DONE");
 	}
 
 	// TODO - retry mechanism
@@ -63,6 +64,7 @@ public class MobileCoreClient extends SystemObjectImpl {
 		}
 		report.report("waiting for seetest to load");
 		Thread.sleep(8000);
+		
 
 	}
 
@@ -160,12 +162,15 @@ public class MobileCoreClient extends SystemObjectImpl {
 	 * @throws Exception 
 	 */
 	public void waitForElementAndClick(SeeTestElement element, int waitTimeout, int count) throws Exception {
-
 		waitForElement(element, waitTimeout);
 		mSeetestClient.click(element.getZone().getValue(), element.getName(), element.getIndex(), count);
 		report.report("click on element " + element.getName());
 	}
 	
+	public void drag(SeeTestElement element, int xOffset, int yOffset) {
+		mSeetestClient.drag(element.getZone().getValue(), element.getName(), element.getIndex(), xOffset, yOffset);
+	}
+
 	public void toggleSlider(SliderToggleType action) throws Exception {
 		SeeTestElement sliderHandle = Elements.SliderElement.SLIDER_HANDLE.getElement();
 		int xOffset = -1;
@@ -295,6 +300,7 @@ public class MobileCoreClient extends SystemObjectImpl {
 		return adb;
 	}
 
+	
 	
 	
 	

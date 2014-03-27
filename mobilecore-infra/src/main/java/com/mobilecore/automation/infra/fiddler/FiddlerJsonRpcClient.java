@@ -34,7 +34,7 @@ public class FiddlerJsonRpcClient extends SystemObjectImpl {
 		report.report("initialize Fiddler-SO");
 		String response = "";
 		//TODO !!!
-		//runFiddlerExecutabe();
+		runFiddlerExecutabe();
 		try {
 		    response = (String)execute(FiddlerApi.ping());
 		} catch (Exception e) {

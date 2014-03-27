@@ -12,15 +12,5 @@
     <taskdef classname="com.aqua.anttask.jsystem.JSystemSwitch" name="jsystemswitch"/>
     <taskdef classname="com.aqua.anttask.jsystem.JSystemForTask" name="jsystemfor"/>
     <taskdef classname="com.aqua.anttask.jsystem.JSystemSetAntProperties" name="jsystemsetantproperties"/>
-    <target name="execute scenario">
-        <antcallback target="t0"/>
-    </target>
-    <target name="t0">
-        <jsystem showoutput="true">
-            <sysproperty key="jsystem.uuid" value="4adbb58d-cbc9-4294-8cf4-9ab472eb6235"/>
-            <sysproperty key="jsystem.parent.uuid" value="${jsystem.parent.uuid}.${jsystem.uuid}"/>
-            <sysproperty key="jsystem.parent.name" value="${jsystem.parent.name}.${ant.project.name}"/>
-            <test name="com.mobilecore.automation.tests.SeeTests.testDisplayOfferwallTypes"/>
-        </jsystem>
-    </target>
+    <target name="execute scenario"/>
 </project>

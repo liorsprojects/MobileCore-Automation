@@ -1,11 +1,15 @@
 package com.mobilecore.automation.infra;
 
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 
@@ -18,36 +22,39 @@ import com.android.ddmlib.AndroidDebugBridge.IDeviceChangeListener;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.RawImage;
 
-
 //TODO - forward also automatically
 public class ADBConnection extends SystemObjectImpl implements IDeviceChangeListener {
 
-	private IDevice device;
-	private AndroidDebugBridge adb;
-	private File adbLocation;
+	private IDevice mDevice;
+	private AndroidDebugBridge mAdb;
+	private File mAdbLocation;
 
 	@Override
 	public void init() throws Exception {
 		super.init();
+		report.report("initializing ADBConnection...");
 		AndroidDebugBridge.initIfNeeded(false);
-		adbLocation = findAdbFile();
-		adb = AndroidDebugBridge.createBridge(adbLocation.getAbsolutePath() + File.separator + "adb", true);
-		if (adb == null) {
+		mAdbLocation = findAdbFile();
+		mAdb = AndroidDebugBridge.createBridge(mAdbLocation.getAbsolutePath() + File.separator + "adb", true);
+		if (mAdb == null) {
 			throw new IllegalStateException("Failed to create ADB bridge");
 		}
 		AndroidDebugBridge.addDeviceChangeListener(this);
-		if (adb.hasInitialDeviceList()) {
-			device = adb.getDevices()[0];
-		} else {			
+		if (mAdb.hasInitialDeviceList()) {
+			mDevice = mAdb.getDevices()[0];
+		} else {
 			waitForDeviceToConnect(5000);
 		}
+		report.report("initializing ADBConnection... DONE");
+		
 	}
 
 	private void waitForDeviceToConnect(int timeoutForDeviceConnection) throws Exception {
 		final long start = System.currentTimeMillis();
-		while (device == null) {
+		while (mDevice == null) {
 			if (System.currentTimeMillis() - start > timeoutForDeviceConnection) {
-				throw new Exception("Cound not find conneced device");
+				report.report("there are no connected devices");
+				return;
 			}
 			try {
 				Thread.sleep(100);
@@ -58,8 +65,8 @@ public class ADBConnection extends SystemObjectImpl implements IDeviceChangeList
 	}
 
 	public File getScreenshotWithAdb(File screenshotFile) throws Exception {
-		RawImage ri = device.getScreenshot();
-		return display(device.getSerialNumber(), ri, screenshotFile);
+		RawImage ri = mDevice.getScreenshot();
+		return display(mDevice.getSerialNumber(), ri, screenshotFile);
 	}
 
 	/**
@@ -71,21 +78,47 @@ public class ADBConnection extends SystemObjectImpl implements IDeviceChangeList
 		super.close();
 	}
 
+	private boolean connectDevice() {
+		boolean connected = false;
+		try {
+			ProcessBuilder pb = new ProcessBuilder("adb", "connect", "192.168.56.102");
+			Process p = pb.start();
+			report.report("adb connect 192.168.56.102");
+			Thread.sleep(2000);
+			String line;
+			BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
+			while ((line = input.readLine()) != null) {
+				if (line.contains("connected") || line.contains("already")) {
+					report.report("device connected");
+					connected = true;
+				}
+			}
+			input.close();
+
+		} catch (Exception e) {
+			report.report("fail to connect");
+		}
+		return connected;
+	}
+
+	// IDeviceChangeListener
 	@Override
 	public void deviceConnected(IDevice device) {
-		this.device = device;
-
+		report.report("new deviece connect with name: " + device.getName() + " and serial: " + device.getSerialNumber());
+		this.mDevice = device;
 	}
 
 	@Override
 	public void deviceDisconnected(IDevice device) {
-		// NOT IN USE
+		report.report("deviece disconnect with name: " + device.getName() + " and serial: " + device.getSerialNumber());
 	}
 
 	@Override
 	public void deviceChanged(IDevice device, int changeMask) {
-		// NOT IN USE
+		report.report("device changed");
 	}
+
+	// end IDeviceChangeListener
 
 	private File findAdbFile() throws IOException {
 		// Check if the adb file is in the current folder
@@ -145,4 +178,126 @@ public class ADBConnection extends SystemObjectImpl implements IDeviceChangeList
 		ImageIO.write(image, "png", screenshotFile);
 		return screenshotFile;
 	}
+
+	// new capabilities
+	public void startGenymotionDevice(String deviceName) throws IOException {
+		try {
+			Runtime rt = Runtime.getRuntime();
+			rt.exec("player.exe --vm-name " + "\"" + deviceName + "\"");
+			System.out.println("Started ");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void shutDownAllGenyMotionDevices() {
+		try {
+			ProcessBuilder pb = new ProcessBuilder("taskkill", "/F", "/IM", "player.exe");
+			report.report("sending kill all genymotion command");
+			Process p = pb.start();
+			Thread.sleep(2000);
+			String line;
+			BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
+			while ((line = input.readLine()) != null) {
+				report.report(line);
+			}
+			input.close();
+
+		} catch (Exception e) {
+			System.out.println("fail to connect");
+		}
+		
+		for (String vmName : getVmNames(true)) {
+			try {
+				ProcessBuilder pb = new ProcessBuilder("VBoxManage", "controlvm", vmName, "poweroff");
+				report.report("sending kill all genymotin command");
+				Process p = pb.start();
+				Thread.sleep(2000);
+				String line;
+				BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
+				while ((line = input.readLine()) != null) {
+					if (line.contains("100%")) {
+						report.report("device with name: " + vmName + " has shutdown");
+					}
+				}
+				input.close();
+
+			} catch (Exception e) {
+				System.out.println("fail to connect");
+			}
+		}
+		disconnectDevice();
+	}
+
+	public List<String> getVmNames(boolean running) {
+		List<String> deviceNames = new ArrayList<String>();
+		ProcessBuilder pb = null;
+		try {
+			if (running) {
+				pb = new ProcessBuilder("VBoxManage", "list", "runningvms");
+			} else {
+				pb = new ProcessBuilder("VBoxManage", "list", "vms");
+			}
+			Process p = pb.start();
+			Thread.sleep(2000);
+			String line;
+			BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
+			while ((line = input.readLine()) != null) {
+				deviceNames.add(line.substring(0, line.indexOf("{") - 1));
+			}
+			input.close();
+
+		} catch (Exception e) {
+			
+		}
+		if (deviceNames.size() == 0) {
+			return null;
+		}
+		return deviceNames;
+	}
+
+	public List<String> getVmNames() {
+		return getVmNames(false);
+	}
+
+	public List<String> getNotRunningVMs() {
+		List<String> allDevices = getVmNames();
+		List<String> runningDevices = getVmNames(true);
+		List<String> notRunningDevices = allDevices;
+		notRunningDevices.removeAll(runningDevices);
+		return notRunningDevices;
+	}
+
+	public void disconnectDevice() {
+		String serialNo = mDevice.getSerialNumber().replace(":5555", "");	
+		try {
+			ProcessBuilder pb = new ProcessBuilder("adb", "disconnect", serialNo);
+			Process p = pb.start();
+			Thread.sleep(2000);
+			String line;
+			BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
+			while ((line = input.readLine()) != null) {}
+			input.close();
+
+		} catch (Exception e) {
+			System.out.println("fail to connect");
+		}
+		IDevice[] devices = mAdb.getDevices();
+		for (IDevice device : devices) {
+			if(device.getSerialNumber().equals(serialNo)) {
+				report.report("fail to disconnect device with serial: " + serialNo, false);
+				return;
+			}
+		}
+		this.mDevice = null;
+	}
+	
+	public IDevice getConnectedDevice() {
+		if(mDevice != null) {
+			return mDevice;
+		}
+		return null;
+	}
+	
+	
 }

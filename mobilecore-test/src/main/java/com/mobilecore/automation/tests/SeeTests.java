@@ -27,11 +27,12 @@ public class SeeTests extends SystemTestCase4 {
 	// test parameters
 	private long installReportTimeout = 120000;
 	private boolean uninstallAppDownload = true;
+	private String deviceName;
+	private String deviceNameForTest;
+	
+	
 	private static ADBConnection adb;
 	private ImageFlowHtmlReport imageFlowHtmlReport;
-	
-	//TODO - ask ohad... maby enum? - after fiddler support
-	//private String ow_id = "not impemented yet";
 
 	@Before
 	public void setUp() throws Exception {
@@ -44,9 +45,7 @@ public class SeeTests extends SystemTestCase4 {
 		if(adb == null) {
 			adb = mobileCoreClient.getAdb();
 		}
-
-		mobileCoreClient.report("setting device adb:Galaxy Nexus");
-		mobileCoreClient.getClient().setDevice("adb:Galaxy Nexus");
+		mobileCoreClient.getClient().setDevice(deviceName);
 		
 		mobileCoreClient.clearLogcat();
 		
@@ -207,7 +206,7 @@ public class SeeTests extends SystemTestCase4 {
 	}
 	
 	@Test
-	@TestProperties(name="open/close slider with handle", paramsInclude={})
+	@TestProperties(name="open/close slider with handle", paramsInclude={""})
 	public void testSliderOpenClose() throws Exception {
 		mobileCoreClient.waitForElement(Elements.MCTesterElement.APP_TITLE.getElement(), 10000);
 		report.step("app started");
@@ -225,7 +224,7 @@ public class SeeTests extends SystemTestCase4 {
 	}
 	
 	@Test
-	@TestProperties(name="display all offerwalls in all devices", paramsInclude={})
+	@TestProperties(name="display all offerwalls in all devices", paramsInclude={"deviceName"})
 	public void testDisplayOfferwallTypes() throws Exception {
 		mobileCoreClient.waitForElement(Elements.MCTesterElement.APP_TITLE.getElement(), 10000);
 		report.step("app started");
@@ -311,6 +310,24 @@ public class SeeTests extends SystemTestCase4 {
 	public void setUninstallAppDownload(boolean uninstallAppDownload) {
 		this.uninstallAppDownload = uninstallAppDownload;
 	}
+
+	public String getDeviceName() {
+		return deviceName;
+	}
+	
+	@ParameterProperties(description="device name to test")
+	public void setDeviceName(String deviceName) {
+		this.deviceName = deviceName;
+	}
+
+	public String getDeviceNameForTest() {
+		return deviceNameForTest;
+	}
+
+	public void setDeviceNameForTest(String deviceNameForTest) {
+		this.deviceNameForTest = deviceNameForTest;
+	}
+	
 	
 	
 }

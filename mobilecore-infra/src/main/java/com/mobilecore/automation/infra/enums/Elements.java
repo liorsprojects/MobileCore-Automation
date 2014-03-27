@@ -4,6 +4,21 @@ import com.mobilecore.automation.infra.SeeTestElement;
 
 public class Elements {
 
+	public enum DeviceElement {
+		
+		ANDROID_LOCK(ZoneType.DEFAULT, "ANDROID_LOCK", 0);
+
+		private SeeTestElement mElement;
+
+		private DeviceElement(ZoneType zone, String name, int index) {
+			this.mElement = new SeeTestElement(zone, name, index);
+		}
+		
+		public SeeTestElement getElement() {
+			return mElement;
+		}
+	}
+	
 	public enum MarketElement {
 		
 		INSTALL_BUTTON(ZoneType.DEFAULT, "INSTALL", 0),
