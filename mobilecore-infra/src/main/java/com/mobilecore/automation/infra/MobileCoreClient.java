@@ -23,6 +23,7 @@ public class MobileCoreClient extends SystemObjectImpl {
 	private String projectBaseDirectory;
 	private String seetestExecutable;
 	public FiddlerJsonRpcClient fiddlerClient;
+	private String apkLoc;
 	
 	// ==== END SUT PARAMS ======
 	
@@ -252,6 +253,16 @@ public class MobileCoreClient extends SystemObjectImpl {
 
 	public void setFiddlerClient(FiddlerJsonRpcClient fiddlerClient) {
 		this.fiddlerClient = fiddlerClient;
+	}
+	
+	
+
+	public String getApkLoc() {
+		return apkLoc;
+	}
+
+	public void setApkLoc(String apkLoc) {
+		this.apkLoc = apkLoc;
 	}
 
 	@Override

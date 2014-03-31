@@ -57,7 +57,7 @@ public class GenymotionOperationTests extends SystemTestCase4 {
 		mobileCoreClient.drag(Elements.DeviceElement.ANDROID_LOCK.getElement(), 200, 0);
 		
 		mobileCoreClient.report("installing MCTester");
-		mobileCoreClient.getClient().install("C:/Users/lior_g/Downloads/MCTester/bin/MCTester.apk", true);
+		mobileCoreClient.getClient().install(mobileCoreClient.getApkLoc(), true);
 		
 		
 		mobileCoreClient.clearLogcat();

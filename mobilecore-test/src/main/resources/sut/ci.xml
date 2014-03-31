@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?><sut validators="">
+	<mobileCoreClient>
+		<class>com.mobilecore.automation.infra.MobileCoreClient</class>
+		<host>localhost</host>
+		<port>8889</port>
+		<projectBaseDirectory>C:\automation\seetest_project</projectBaseDirectory>
+		<seetestExecutable>C:\"Program Files (x86)"\Experitest\SeeTest\studio.exe</seetestExecutable>
+		<apkLoc>c:\automation\apk\MCTester.apk</apkLoc>
+		<fiddlerClient>
+        		<class>com.mobilecore.automation.infra.fiddler.FiddlerJsonRpcClient</class>
+        		<executablePath>C:/automation/MobileCoreFiddler/IronSourceFiddler.Client.exe</executablePath>
+			<host>127.0.0.1</host>
+			<port>3333</port>
+    		</fiddlerClient>	
+	</mobileCoreClient>
+</sut>
