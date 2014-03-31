@@ -9,6 +9,10 @@
 			<id>top-q</id>
 			<url>http://maven.top-q.co.il/content/groups/public</url>
 		</repository>
+		<repository>
+			<id>iron-sanotype</id>
+			<url>http://172.17.19.140:1984/nexus/content/groups/public/</url>
+		</repository>
 	</repositories>
 	<dependencies>
 		<dependency>
