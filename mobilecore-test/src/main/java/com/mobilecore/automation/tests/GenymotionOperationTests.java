@@ -31,18 +31,21 @@ public class GenymotionOperationTests extends SystemTestCase4 {
 		if (adbConnection == null) {
 			adbConnection = new ADBConnection();
 			adbConnection.init();
+			
 		}
 		
 		if(mobileCoreClient == null) {
 			report.report("initialize mobileCoreClient SystemObject");
 			mobileCoreClient = (MobileCoreClient) system.getSystemObject("mobileCoreClient");
 			mobileCoreClient.report("initialize mobileCoreClient SystemObject complete");
+			//TODO -
+			//mobileCoreClient.getFiddlerClient().execute(FiddlerApi.setFeedJsonPath("stickeez", "C:\\automation\\stickeez.json"));
 		}
 		imageFlowHtmlReport = new ImageFlowHtmlReport();
 	}
 
 	@Test
-	@TestProperties(name = "start ${deviceName} genymotion device" , paramsInclude={"deviceName"})
+	@TestProperties(name = "start ${deviceName} genymotion device", paramsInclude = { "deviceName" })
 	public void startGenymotionDevice() throws Exception {
 		adbConnection.startGenymotionDevice(deviceName);
 		Thread.sleep(45000);
@@ -50,78 +53,94 @@ public class GenymotionOperationTests extends SystemTestCase4 {
 		if(device == null) {
 			report.report("device is null", false);
 		}
-		mobileCoreClient.getClient().addDevice(device.getSerialNumber(), device.getName());
+		report.report("before adding device: " + mobileCoreClient.getClient().getConnectedDevices());
+		mobileCoreClient.getClient().addDevice(device.getSerialNumber(), deviceName);
+		report.report("after adding device: " + mobileCoreClient.getClient().getConnectedDevices());
 		mobileCoreClient.getClient().setDevice("adb:" + deviceName);
-		
-		mobileCoreClient.waitForElement(Elements.DeviceElement.ANDROID_LOCK.getElement(), 30000);
-		mobileCoreClient.drag(Elements.DeviceElement.ANDROID_LOCK.getElement(), 200, 0);
-		
+		report.report("after setting device: " + mobileCoreClient.getClient().getConnectedDevices());
+		try {
+			mobileCoreClient.waitForElement(Elements.DeviceElement.ANDROID_LOCK.getElement(), 30000);
+			mobileCoreClient.drag(Elements.DeviceElement.ANDROID_LOCK.getElement(), 200, 0);
+		} catch (Exception e) {
+			imageFlowHtmlReport.addTitledImage("unlock screen fial", adbConnection.getScreenshotWithAdb(null));
+			report.report("didnt unlock device");
+		}
+
 		mobileCoreClient.report("installing MCTester");
 		mobileCoreClient.getClient().install(mobileCoreClient.getApkLoc(), true);
 		
 		
 		mobileCoreClient.clearLogcat();
 		mobileCoreClient.report("launching MCTester");
-		mobileCoreClient.getClient().launch("com.mobilecore.mctester.lior/.MainActivity", true, true);
+		mobileCoreClient.getClient().launch("com.mobilecore.automation.te/.MainActivity", true, true);
 	}
 
 	@Test
-	@TestProperties(name = "shutdown all genymotion devices" , paramsInclude={})
+	@TestProperties(name = "shutdown all genymotion devices", paramsInclude = {})
 	public void shutdownGenymotionDevices() throws InterruptedException {
 		adbConnection.shutDownAllGenyMotionDevices();
 		Thread.sleep(10000);
 	}
 
-	
 	@Test
-	@TestProperties(name="display all offerwalls in all devices", paramsInclude={"deviceName"})
+	@TestProperties(name = "display all offerwalls in all devices", paramsInclude = { "deviceName" })
 	public void testDisplayOfferwallTypes() throws Exception {
 		mobileCoreClient.waitForElement(Elements.MCTesterElement.APP_TITLE.getElement(), 10000);
 		report.step("app started");
 		mobileCoreClient.sleep(3000);
-		
-		String[] owIds = {"original offerwall", "1_bnr_avg_green", "1_bnr_avg_white", "1_bnr_full_sqr_orng", "1_bnr_ic_sqr_cntr","1_bnr_ic_rect_cntr","1_bnr_rect","1_bnr_sqr","1_bnr_sqr_cntr_header","2_avg_green", "2_ftb", "2_ic_big", "2_ic_big_xtreme", "2_redbend", "2_run_cow", "2_sharklab", "bn_ic_2", "bn_ic_4"};
-		
+
+		String[] owIds = { "original offerwall", "1_bnr_avg_green", "1_bnr_avg_white", "1_bnr_full_sqr_orng", "1_bnr_ic_sqr_cntr",
+				"1_bnr_ic_rect_cntr", "1_bnr_rect", "1_bnr_sqr", "1_bnr_sqr_cntr_header", "2_avg_green", "2_ftb", "2_ic_big", "2_ic_big_xtreme",
+				"2_redbend", "2_run_cow", "2_sharklab", "bn_ic_2", "bn_ic_4" };
+
 		mobileCoreClient.waitForLogcatMessage("OfferwallManager", Reporter.FAIL, 15000, true, "mReadyToShowOfferwallFromFlow to true");
 		report.step("offerwall is ready to show");
 		mobileCoreClient.waitForLogcatMessage("MobileCoreReport", Reporter.FAIL, 15000, true, "ftue_shown");
-		
-		for(int i=0; i<owIds.length; i++) {
-			
-			mobileCoreClient.click(Elements.MCTesterElement.SHOW_IF_READY.getElement(), 1);
+
+		for (int i = 0; i < owIds.length; i++) {
+
 			report.step("click 'Show if ready' button");
+			mobileCoreClient.click(Elements.MCTesterElement.SHOW_IF_READY.getElement(), 1);
 			report.step("showing: " + owIds[i]);
-			mobileCoreClient.fiddlerCommand(FiddlerApi.setFeedJsonPath("offerwall", "C:\\Fiddler\\ow_id.json"));
+			report.report("set fiddler json");
+			mobileCoreClient.fiddlerCommand(FiddlerApi.setFeedJsonPath("offerwall", "C:\\automation\\ow_id.json"));
 			
 			if((i+1) == owIds.length){
 				report.report("next wall is the last in the list so we are not setting the next one to anything");
 			} else {
-				mobileCoreClient.fiddlerCommand(FiddlerApi.modifyFeed("offerwall", owIds[i+1], false, true));			
+				report.report("set desired ow_id in fiddler");
+				mobileCoreClient.fiddlerCommand(FiddlerApi.modifyFeed("offerwall", owIds[i + 1], false, true));
 			}
 			mobileCoreClient.clearLogcat();
 			mobileCoreClient.sleep(2000);
 			
 			imageFlowHtmlReport.addTitledImage(owIds[i], adbConnection.getScreenshotWithAdb(null));
-			
-			SeeTestElement el1 = new SeeTestElement(ZoneType.NATIVE, "contentDescription=webview-1", 0);
-			SeeTestElement el2 = new SeeTestElement(ZoneType.NATIVE, "contentDescription=webview-2", 0);
-			if(mobileCoreClient.isElementFound(el1)) {
+
+			SeeTestElement el1 = new SeeTestElement(ZoneType.NATIVE, "contentDescription=offerwall-webview-1", 0);
+			SeeTestElement el2 = new SeeTestElement(ZoneType.NATIVE, "contentDescription=offerwall-webview-2", 0);
+			if (mobileCoreClient.isElementFound(el1)) {
+				report.report("offerwall webview-1 is present about to click back button");
 				mobileCoreClient.clickBackButton();
-				try{
+				report.report("click back button");
+				try {
+					report.report("waiting for offerwall webview-1 to vanish");
 					mobileCoreClient.waitForElementToVanish(el1, 2000);
 					report.report("webview-1 vanish");
 				}catch (Exception e) {
 					
 				}
 			}
-			if(mobileCoreClient.isElementFound(el2)) {
+			if (mobileCoreClient.isElementFound(el2)) {
+				report.report("offerwall webview-2 is present about to click back button");
 				mobileCoreClient.clickBackButton();
-				try{
+				report.report("click back button");
+				try {
+					report.report("waiting for offerwall webview-2 to vanish");
 					mobileCoreClient.waitForElementToVanish(el2, 2000);
 					report.report("webview-2 vanish");
-				}catch (Exception e) {
-					
-				}				
+				} catch (Exception e) {
+
+				}
 			}
 			mobileCoreClient.sleep(3000);
 		}

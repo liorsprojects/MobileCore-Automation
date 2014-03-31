@@ -255,7 +255,6 @@ public class MobileCoreClient extends SystemObjectImpl {
 		this.fiddlerClient = fiddlerClient;
 	}
 	
-	
 
 	public String getApkLoc() {
 		return apkLoc;
@@ -276,14 +275,7 @@ public class MobileCoreClient extends SystemObjectImpl {
 		super.close();
 	}
 
-	// ===================== Example use =====================
-	public static void main(String[] args) throws Exception {
 
-		MobileCoreClient client = new MobileCoreClient();
-		// client.waiter.wait("\"RS\"",10000 ,"\"RS\":\"D\"",
-		// "\"Flow\":\"offerwall\"");
-		//client.waitForLogcatMessage("OfferwallManager", Reporter.FAIL ,10000, "from:READY_TO_SHOW , to:SHOWING");
-	}
 
 	@Deprecated
 	public void waitForReport(String rs, long timeout) throws Exception {
