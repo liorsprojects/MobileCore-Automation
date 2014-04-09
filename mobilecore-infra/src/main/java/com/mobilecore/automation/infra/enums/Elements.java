@@ -6,7 +6,7 @@ public class Elements {
 
 	public enum DeviceElement {
 		
-		ANDROID_LOCK(ZoneType.DEFAULT, "ANDROID_LOCK", 0);
+		ANDROID_LOCK(ZoneType.NATIVE, "contentDescription=Slide area.", 0);
 
 		private SeeTestElement mElement;
 
@@ -21,12 +21,12 @@ public class Elements {
 	
 	public enum MarketElement {
 		
-		INSTALL_BUTTON(ZoneType.DEFAULT, "INSTALL", 0),
-		ACCEPT_BUTTON(ZoneType.DEFAULT, "ACCEPT", 0),
-		UNINSTALL_BUTTON(ZoneType.DEFAULT, "UNINSTALL",0),
-		OPEN_BUTTON(ZoneType.DEFAULT, "OPEN", 0),
-		CONFIRM_UNINSTALL_TEXT(ZoneType.DEFAULT, "CONFIRM_UNINSTALL_TEXT", 0),
-		CONFIRM_OK(ZoneType.DEFAULT, "CONFIRM_OK", 0),
+		INSTALL_BUTTON(ZoneType.DEFAULT, "text=INSTALL", 0),
+		ACCEPT_BUTTON(ZoneType.DEFAULT, "text=ACCEPT", 0),
+		UNINSTALL_BUTTON(ZoneType.DEFAULT, "text=UNINSTALL",0),
+		OPEN_BUTTON(ZoneType.DEFAULT, "text=OPEN", 0),
+		CONFIRM_UNINSTALL_TEXT(ZoneType.DEFAULT, "text=Do you want to uninstall this app?", 0),
+		CONFIRM_OK(ZoneType.DEFAULT, "text=OK", 0),
 		DOWNLOADING_TEXT(ZoneType.DEFAULT, "DOWNLOADING_TEXT", 0),
 		INSTALLING_TEXT(ZoneType.DEFAULT,"INSTALLING_TEXT", 0),
 		PROGRESS_BAR(ZoneType.DEFAULT, "PROGRESS_BAR", 0);
@@ -44,8 +44,8 @@ public class Elements {
 	
 	public enum MCTesterElement {
 		
-		APP_TITLE(ZoneType.DEFAULT, "APP_TITLE", 0),
-		SHOW_IF_READY(ZoneType.DEFAULT, "SHOW_IF_READY", 0),
+		APP_TITLE(ZoneType.NATIVE, "text=MCTester", 0),
+		SHOW_IF_READY(ZoneType.NATIVE, "text=Show if ready", 0),
 		SHOW_NOT_FORCE(ZoneType.DEFAULT, "SHOW_NOT_FORCE", 0),
 		SHOW_STICKEE(ZoneType.NATIVE, "text=Show stickee", 0);
 
@@ -78,7 +78,11 @@ public class Elements {
 	
 	public enum StickeezElement {
 		X_BUTTON(ZoneType.NATIVE, "contentDescription=stickeez-x", 0),
-		STICKEEZ_HANDLE(ZoneType.NATIVE, "contentDescription=stickeez-handle", 0);
+		STICKEEZ_HANDLE(ZoneType.NATIVE, "contentDescription=stickeez-handle", 0),
+		STICKEEZ_HANDLE_CLICKABLE_AREA(ZoneType.NATIVE, "contentDescription=stickeez-handle-clickable-area", 0),
+		STICKEEZ_BANNER_X(ZoneType.NATIVE, "contentDescription=stickeez-banner-x", 0),
+		STICKEEZ_BANNER_APP_TITLE(ZoneType.NATIVE, "contentDescription=stickeez-banner-app-title", 0),
+		STICKEEZ_BANNER_APP_DESCRIPTION(ZoneType.NATIVE, "contentDescription=stickeez-banner-app-description", 0);
 	
 		private SeeTestElement mElement;
 

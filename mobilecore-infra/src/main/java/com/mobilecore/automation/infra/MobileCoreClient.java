@@ -154,6 +154,7 @@ public class MobileCoreClient extends SystemObjectImpl {
 		report.report("click on element " + element.getName());
 	}
 	
+	
 	/**
 	 * 
 	 * @param element - string identifier or well formed selector
