@@ -6,8 +6,12 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import com.mobilecore.automation.infra.ADBConnection;
+
 public class ImageFlowHtmlReport {
 	
+	
+	private ADBConnection mAdbConnection;
 	private static final String SIMPLE_TITLE_FORMAT = "<p>%s</p>";
 	private static final String SIMPLE_IMG_FORMAT = "<img class=\"screenshot\" src=\"%s\"/>";
 	private static final String BLANK_ROW = "<br/>";
@@ -20,7 +24,8 @@ public class ImageFlowHtmlReport {
 	
 	StringBuilder htmlBody;
 
-	public ImageFlowHtmlReport() throws URISyntaxException {
+	public ImageFlowHtmlReport(ADBConnection adbConnection) throws URISyntaxException {
+		mAdbConnection = adbConnection;
 		URL resourceUrl = getClass().getResource("/jquery-2.0.3.min.js");
 		Path resourcePath = Paths.get(resourceUrl.toURI());
 		jqueryLocation = resourcePath.toFile().getAbsolutePath();
@@ -49,10 +54,15 @@ public class ImageFlowHtmlReport {
 		addScaleButtonWidget();
 	}
 	
-	public void addTitledImage(String title, File imagefile) {
+	public void addTitledImage(String title) {
 		htmlBody.append(BLANK_ROW);
 		htmlBody.append(String.format(SIMPLE_TITLE_FORMAT, title));
-		htmlBody.append(String.format(SIMPLE_IMG_FORMAT, imagefile.getAbsoluteFile()));
+		try {
+			htmlBody.append(String.format(SIMPLE_IMG_FORMAT, mAdbConnection.getScreenshotWithAdb(null).getAbsoluteFile()));
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		htmlBody.append(BLANK_ROW);
 	}
 	

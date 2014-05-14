@@ -51,7 +51,7 @@ public class SeeTests extends SystemTestCase4 {
 		
 		mobileCoreClient.report("launching MCTester");
 		mobileCoreClient.getClient().launch("com.mobilecore.mctester/.MainActivity", true, true);
-		imageFlowHtmlReport = new ImageFlowHtmlReport();
+		imageFlowHtmlReport = new ImageFlowHtmlReport(adb);
 	}
 
 	@Test
@@ -246,12 +246,12 @@ public class SeeTests extends SystemTestCase4 {
 			if((i+1) == owIds.length){
 				report.report("next wall is the last in the list so we are not setting the next one to anything");
 			} else {
-				mobileCoreClient.fiddlerCommand(FiddlerApi.modifyFeed("offerwall", owIds[i+1], false, true));			
+				//mobileCoreClient.fiddlerCommand(FiddlerApi.modifyFeed("offerwall", owIds[i+1], false, true));			
 			}
 			mobileCoreClient.clearLogcat();
 			mobileCoreClient.sleep(2000);
 			
-			imageFlowHtmlReport.addTitledImage(owIds[i], adb.getScreenshotWithAdb(null));
+			imageFlowHtmlReport.addTitledImage(owIds[i]);
 			SeeTestElement el1 = new SeeTestElement(ZoneType.NATIVE, "contentDescription=offerwall-webview-1", 0);
 			SeeTestElement el2 = new SeeTestElement(ZoneType.NATIVE, "contentDescription=offerwall-webview-2", 0);
 			if(mobileCoreClient.isElementFound(el1)) {
@@ -287,7 +287,7 @@ public class SeeTests extends SystemTestCase4 {
 	@After
 	public void tearDown() throws Exception {
 		if (!isPass()) {
-			imageFlowHtmlReport.addTitledImage("Failed Here", adb.getScreenshotWithAdb(null));
+			imageFlowHtmlReport.addTitledImage("Failed Here");
 			report.report("screen flow", imageFlowHtmlReport.getHtmlReport(), Reporter.PASS, false, true, false, false);
 		}
 		mobileCoreClient.getClient().generateReport();

@@ -52,7 +52,7 @@ public class RealDeviceTests extends SystemTestCase4 {
 			mMobileCoreClient = (MobileCoreClient) system.getSystemObject("mobileCoreClient");
 			mMobileCoreClient.report("initialize mobileCoreClient SystemObject complete");
 		}
-		mImageFlowHtmlReport = new ImageFlowHtmlReport();
+		mImageFlowHtmlReport = new ImageFlowHtmlReport(mAdbConnection);
 		mMobileCoreClient.fiddlerCommand(FiddlerApi.setFeedJsonPath("stickeez", "C:\\automation\\static_json\\stickeez.json"));
 	}
 
@@ -101,12 +101,12 @@ public class RealDeviceTests extends SystemTestCase4 {
 				report.report("next wall is the last in the list so we are not setting the next one to anything");
 			} else {
 				report.report("set desired ow_id in fiddler");
-				mMobileCoreClient.fiddlerCommand(FiddlerApi.modifyFeed("offerwall", owIds[i + 1], false, true));
+				//mMobileCoreClient.fiddlerCommand(FiddlerApi.modifyFeed("offerwall", owIds[i + 1], false, true));
 			}
 			mMobileCoreClient.clearLogcat();
 			mMobileCoreClient.sleep(2000);
 
-			mImageFlowHtmlReport.addTitledImage(owIds[i], mAdbConnection.getScreenshotWithAdb(null));
+			mImageFlowHtmlReport.addTitledImage(owIds[i]);
 
 			SeeTestElement el1 = new SeeTestElement(ZoneType.NATIVE, "contentDescription=offerwall-webview-1", 0);
 			SeeTestElement el2 = new SeeTestElement(ZoneType.NATIVE, "contentDescription=offerwall-webview-2", 0);
@@ -149,13 +149,13 @@ public class RealDeviceTests extends SystemTestCase4 {
 	@Test
 	@TestProperties(name="close offerwall with X button", paramsInclude={"appPackage"})
 	public void testOfferwallCloseWithXButton() throws Exception {
-		mImageFlowHtmlReport.addTitledImage("before app launch", mAdbConnection.getScreenshotWithAdb(null));
+		mImageFlowHtmlReport.addTitledImage("before app launch");
 		mMobileCoreClient.clearLogcat();
 		mMobileCoreClient.report("launching MCTester");
 		mMobileCoreClient.getClient().launch(appPackage, true, true);
 		mMobileCoreClient.waitForElement(Elements.MCTesterElement.APP_TITLE.getElement(), 10000);
 		report.step("app started");
-		mImageFlowHtmlReport.addTitledImage("app started", mAdbConnection.getScreenshotWithAdb(null));
+		mImageFlowHtmlReport.addTitledImage("app started");
 
 		mMobileCoreClient.waitForLogcatMessage("OfferwallManager", Reporter.FAIL, 15000, true, "mReadyToShowOfferwallFromFlow to true");
 		report.step("offerwall is ready to show");
@@ -163,7 +163,7 @@ public class RealDeviceTests extends SystemTestCase4 {
 		
 		mMobileCoreClient.click(Elements.MCTesterElement.SHOW_IF_READY.getElement(), 1);
 		report.step("click 'Show if ready' button");
-		mImageFlowHtmlReport.addTitledImage("click 'Show if ready' button", mAdbConnection.getScreenshotWithAdb(null));
+		mImageFlowHtmlReport.addTitledImage("click 'Show if ready' button");
 	
 		mMobileCoreClient.waitForRS(RSType.WALL, FlowType.OFFERWALL, Reporter.FAIL, 10000);
 		mMobileCoreClient.waitForRS(RSType.IMPRESSION, FlowType.OFFERWALL, Reporter.FAIL, 10000);
@@ -281,7 +281,7 @@ public class RealDeviceTests extends SystemTestCase4 {
 	@After
 	public void tearDown() throws Exception {
 		if (!isPass()) {
-			mImageFlowHtmlReport.addTitledImage("Failed Here", mAdbConnection.getScreenshotWithAdb(null));
+			mImageFlowHtmlReport.addTitledImage("Failed Here");
 			report.report("screen flow", mImageFlowHtmlReport.getHtmlReport(), Reporter.PASS, false, true, false, false);
 		}
 		mMobileCoreClient.getClient().generateReport();	
@@ -330,7 +330,7 @@ public class RealDeviceTests extends SystemTestCase4 {
 				//mMobileCoreClient.drag(Elements.DeviceElement.ANDROID_LOCK.getElement(), 200, 0);
 				
 			} catch (Exception e) {
-				mImageFlowHtmlReport.addTitledImage("unlock screen fial", mAdbConnection.getScreenshotWithAdb(null));
+				mImageFlowHtmlReport.addTitledImage("unlock screen fial");
 				report.report("didn't release lock screen of the device");
 			}
 			done = true;

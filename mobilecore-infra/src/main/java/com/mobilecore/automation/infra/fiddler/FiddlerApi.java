@@ -11,8 +11,8 @@ public class FiddlerApi {
 	}
 	
 	//modifyFeed(string feedType, string owId, bool trimAdsToMach, bool pFilter)
-	public static String modifyFeed(String feedType, String owId, boolean trimAdsToMach, boolean filter) {
-		return "{'method':'modifyFeed','params':['"+ feedType +"','"+ owId +"'," + trimAdsToMach +","+ filter +"],'id':1}";
+	public static String modifyFeed(String feedType, String owId, int numOfAds ,boolean trimAdsToMach, boolean filter) {
+		return "{'method':'modifyFeed','params':['"+ feedType +"','"+ owId +"'," + numOfAds +"," + trimAdsToMach +","+ filter +"],'id':1}";
 	}
 	
 	

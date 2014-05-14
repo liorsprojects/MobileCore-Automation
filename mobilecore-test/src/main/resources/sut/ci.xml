@@ -5,10 +5,10 @@
 		<port>1983</port>
 		<projectBaseDirectory>C:\automation\dependencies\seetest_project</projectBaseDirectory>
 		<seetestExecutable>C:\"Program Files (x86)"\Experitest\SeeTest\studio.exe</seetestExecutable>
-		<apkLoc>C:\Users\user\Downloads\MCTester\MCTester\bin\MCTester.apk</apkLoc>
+		<apkLoc>C:\Users\user\Desktop\APK_FROM_BAMBOO\MCTester.apk</apkLoc>
 		<fiddlerClient>
         		<class>com.mobilecore.automation.infra.fiddler.FiddlerJsonRpcClient</class>
-        		<executablePath>C:/Users/user/Desktop/FiddlerWithStickeezInject/IronSourceFiddler.Client.exe</executablePath>
+        		<executablePath>C:/automation/dependencies/fiddler_ads_num_fix/IronSourceFiddler.Client.exe</executablePath>
 
 			<host>127.0.0.1</host>
 			<port>3333</port>

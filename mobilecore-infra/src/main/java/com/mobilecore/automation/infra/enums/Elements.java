@@ -21,15 +21,15 @@ public class Elements {
 	
 	public enum MarketElement {
 		
-		INSTALL_BUTTON(ZoneType.DEFAULT, "text=INSTALL", 0),
-		ACCEPT_BUTTON(ZoneType.DEFAULT, "text=ACCEPT", 0),
-		UNINSTALL_BUTTON(ZoneType.DEFAULT, "text=UNINSTALL",0),
-		OPEN_BUTTON(ZoneType.DEFAULT, "text=OPEN", 0),
-		CONFIRM_UNINSTALL_TEXT(ZoneType.DEFAULT, "text=Do you want to uninstall this app?", 0),
-		CONFIRM_OK(ZoneType.DEFAULT, "text=OK", 0),
-		DOWNLOADING_TEXT(ZoneType.DEFAULT, "DOWNLOADING_TEXT", 0),
-		INSTALLING_TEXT(ZoneType.DEFAULT,"INSTALLING_TEXT", 0),
-		PROGRESS_BAR(ZoneType.DEFAULT, "PROGRESS_BAR", 0);
+		INSTALL_BUTTON(ZoneType.NATIVE, "xpath=//*[@text='INSTALL']", 0),
+		ACCEPT_BUTTON(ZoneType.NATIVE, "xpath=//*[@text='ACCEPT']", 0),
+		UNINSTALL_BUTTON(ZoneType.NATIVE, "xpath=//*[@text='UNINSTALL']",0),
+		OPEN_BUTTON(ZoneType.NATIVE, "xpath=//*[@text='OPEN']", 0),
+		CONFIRM_UNINSTALL_TEXT(ZoneType.NATIVE, "xpath=//*[@text='Do you want to uninstall this app?']",0),
+		CONFIRM_OK(ZoneType.NATIVE, "xpath=//*[@text='OK']",0),
+		DOWNLOADING_TEXT(ZoneType.NATIVE, "xpath=//*[@text='Downloading…']", 0),
+		INSTALLING_TEXT(ZoneType.NATIVE,"xpath=//*[@text='Installing…']", 0),
+		PROGRESS_BAR(ZoneType.NATIVE, "xpath=//*[@class='android.widget.ProgressBar']", 0);
 
 		private SeeTestElement mElement;
 
@@ -62,7 +62,7 @@ public class Elements {
 
 	public enum OfferwallElement {
 		X_BUTTON(ZoneType.WEB,"css=A" , 0),
-		INNER_ITEM(ZoneType.WEB, "css=.inner_item", 0),
+		INNER_ITEM(ZoneType.WEB, "css=.inner_item" /*"xpath=//*[@id='downloadSection' and @width >0]"*/, 0),
 		INNER_ITEM_TITTLE(ZoneType.WEB, "css=.title", 0);
 
 		private SeeTestElement mElement;

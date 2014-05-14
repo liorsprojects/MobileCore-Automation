@@ -47,8 +47,8 @@ public class MobileCoreClient extends SystemObjectImpl {
 		try {
 			ProcessBuilder pb = new ProcessBuilder("cmd.exe", "/C", seetestExecutable, "-hide");
 			pb.start();
-			report.report("execute connad: " + seetestExecutable+ " -hide");
-			Thread.sleep(2000);
+			report.report("execute command: " + seetestExecutable+ " -hide");
+			Thread.sleep(4000);
 			String line;
 
 			Process p = Runtime.getRuntime().exec("tasklist.exe");
@@ -65,8 +65,6 @@ public class MobileCoreClient extends SystemObjectImpl {
 		}
 		report.report("waiting for seetest to load");
 		Thread.sleep(8000);
-		
-
 	}
 
 	public void stopSeetestService() throws Exception {

@@ -35,10 +35,20 @@ public class GenymotionOperationTests extends SystemTestCase4 {
 	private boolean uninstallAppDownload = true;
 	private GenymotionDevice genymotionDevice;
 	private String appPackage;
-	private OfferwallParams[] offerwalls;/* { "original offerwall", "1_bnr_avg_green", "1_bnr_avg_white", "1_bnr_full_sqr_orng", "1_bnr_ic_sqr_cntr",
-			"1_bnr_ic_rect_cntr", "1_bnr_rect", "1_bnr_sqr", "1_bnr_sqr_cntr_header", "2_avg_green", "2_ftb", "2_ic_big", "2_ic_big_xtreme",
-			"2_redbend", "2_run_cow", "2_sharklab", "bn_ic_2", "bn_ic_4" };*/
-	
+	private boolean installApk = true;
+	private OfferwallParams[] offerwalls;/*
+										 * { "original offerwall",
+										 * "1_bnr_avg_green", "1_bnr_avg_white",
+										 * "1_bnr_full_sqr_orng",
+										 * "1_bnr_ic_sqr_cntr",
+										 * "1_bnr_ic_rect_cntr", "1_bnr_rect",
+										 * "1_bnr_sqr", "1_bnr_sqr_cntr_header",
+										 * "2_avg_green", "2_ftb", "2_ic_big",
+										 * "2_ic_big_xtreme", "2_redbend",
+										 * "2_run_cow", "2_sharklab", "bn_ic_2",
+										 * "bn_ic_4" };
+										 */
+
 	/**
 	 * this method runs before every method annotated as Test in this
 	 * class(@Test)
@@ -50,7 +60,6 @@ public class GenymotionOperationTests extends SystemTestCase4 {
 		if (mAdbConnection == null) {
 			mAdbConnection = new ADBConnection();
 			mAdbConnection.init();
-
 		}
 
 		if (mMobileCoreClient == null) {
@@ -58,7 +67,8 @@ public class GenymotionOperationTests extends SystemTestCase4 {
 			mMobileCoreClient = (MobileCoreClient) system.getSystemObject("mobileCoreClient");
 			mMobileCoreClient.report("initialize mobileCoreClient SystemObject complete");
 		}
-		mImageFlowHtmlReport = new ImageFlowHtmlReport();
+		mImageFlowHtmlReport = new ImageFlowHtmlReport(mAdbConnection);
+		//TODO - add clearing of the fiddler
 	}
 
 	/**
@@ -68,80 +78,87 @@ public class GenymotionOperationTests extends SystemTestCase4 {
 	 * @throws Exception
 	 */
 	@Test
-	@TestProperties(name = "start genymotion device", paramsInclude = { "genymotionDevice", "mSetDeviceTimout" })
+	@TestProperties(name = "start genymotion device", paramsInclude = { "genymotionDevice", "mSetDeviceTimout", "installApk" })
 	public void startGenymotionDevice() throws Exception {
 		mAdbConnection.startGenymotionDevice(genymotionDevice.getValue());
 
 		waitAddAndSetDevice(genymotionDevice.getValue());
 
-		mMobileCoreClient.report("installing MCTester");
-		mMobileCoreClient.getClient().install(mMobileCoreClient.getApkLoc(), true);
-		// TODO - think of solution this cant be here
-		//mMobileCoreClient.fiddlerCommand(FiddlerApi.setFeedJsonPath("stickeez", "C:\\stickeez.json"));
-		
+		if(installApk) {
+			mMobileCoreClient.report("installing MCTester");
+			mMobileCoreClient.getClient().install(mMobileCoreClient.getApkLoc(), true, true);
+		} else {
+			report.report("assume that app already installed so skipping instalation");
+		}
 	}
-	
+
 	@Test
-	@TestProperties(name = "start genymotion device dynamic", paramsInclude = { "mDeviceName", "mSetDeviceTimout" })
+	@TestProperties(name = "start genymotion device dynamic", paramsInclude = { "mDeviceName", "mSetDeviceTimout, installApk" })
 	public void startGenymotionDynamicDevice() throws Exception {
+		report.step("before givinig the start device command seetest devices:" + mMobileCoreClient.getClient().getConnectedDevices());
 		mAdbConnection.startGenymotionDevice(mDeviceName);
-
-		waitAddAndSetDevice(mDeviceName);
-
-		mMobileCoreClient.report("installing MCTester");
-		mMobileCoreClient.getClient().install(mMobileCoreClient.getApkLoc(), true);
-		mMobileCoreClient.getClient().sendText("{UNLOCK}");
-		// TODO - think of solution this cant be here
-		//mMobileCoreClient.fiddlerCommand(FiddlerApi.setFeedJsonPath("stickeez", "C:\\stickeez.json"));
 		
+		waitAddAndSetDevice(mDeviceName);
+		if(installApk) {			
+			mMobileCoreClient.report("installing MCTester");
+			mMobileCoreClient.getClient().install(mMobileCoreClient.getApkLoc(), true, true);
+		} else { 
+			report.report("assume that app already installed so skipping instalation");
+		}
+		mMobileCoreClient.getClient().sendText("{UNLOCK}");
+
 	}
 
 	@Test
-	@TestProperties(name = "shutdown all genymotion devices", paramsInclude = {})
-	public void shutdownGenymotionDevices() throws InterruptedException {
-		releaseDevice();
+	@TestProperties(name = "shutdown all genymotion devices", paramsInclude = {"mDeviceName"})
+	public void shutdownGenymotionDevices() throws Exception {
+		try{
+			releaseDevice(mDeviceName);
+		} catch(Exception e) {
+			report.report(e.getMessage(), Reporter.WARNING);
+		}
 		mAdbConnection.shutDownAllGenyMotionDevices();
 		Thread.sleep(4000);
 	}
 
-	//TODO - move to infra
-	private void releaseDevice() {
-		mMobileCoreClient.getClient().release();
-		report.report("release device hopeful");
+	// TODO - move to infra
+	private void releaseDevice(String deviceName) {
+		mMobileCoreClient.getClient().release(deviceName, false, true, false);
+		report.report("release device '" + mDeviceName + "'");
 	}
 
 	@Test
-	@TestProperties(name = "display all offerwalls in all devices", paramsInclude = {"appPackage","offerwalls"})
+	@TestProperties(name = "display all offerwalls in all devices", paramsInclude = { "appPackage", "offerwalls" })
 	public void testDisplayOfferwallTypes() throws Exception {
 		mMobileCoreClient.clearLogcat();
-		
+
 		report.report("set first add to show");
 		report.report("set fiddler json");
 		mMobileCoreClient.fiddlerCommand(FiddlerApi.setFeedJsonPath("offerwall", "C:\\automation\\static_json\\offerwall.json"));
 		report.report("set desired ow_id in fiddler");
-		mMobileCoreClient.fiddlerCommand(FiddlerApi.modifyFeed("offerwall", offerwalls[0].getOwId(), false, offerwalls[0].isFilter()));
-		
+		mMobileCoreClient.fiddlerCommand(FiddlerApi.modifyFeed("offerwall", offerwalls[0].getOwId(), offerwalls[0].getOwAdCount(), false, offerwalls[0].isFilter()));
+
 		mMobileCoreClient.report("launching MCTester");
 		mMobileCoreClient.getClient().launch(appPackage, true, true);
 		mMobileCoreClient.waitForElement(Elements.MCTesterElement.APP_TITLE.getElement(), 10000);
 		report.step("app started");
 		mMobileCoreClient.sleep(3000);
 
-		
-		if(mMobileCoreClient.waitForLogcatMessage("OfferwallManager", Reporter.FAIL, 15000, true, "mReadyToShowOfferwallFromFlow to true")) {
+		if (!mMobileCoreClient.waitForLogcatMessage("OfferwallManager", Reporter.FAIL, 15000, true, "mReadyToShowOfferwallFromFlow to true")) {
 			throw new Exception("didnt find log that conatains: 'mReadyToShowOfferwallFromFlow to true' after 15000 milliseconds");
 		}
 		report.step("offerwall is ready to show");
 		mMobileCoreClient.waitForLogcatMessage("MobileCoreReport", Reporter.FAIL, 15000, true, "ftue_shown");
 		boolean offerwallIsReady = true;
 		for (int i = 0; i < offerwalls.length; i++) {
-			if(i == 0) {
+			if (i == 0) {
 				report.report("skipping ready state check, this is the first iteration so it is checked out side the loop");
 			} else {
-				offerwallIsReady = mMobileCoreClient.waitForLogcatMessage("WebViewWithLoadState", Reporter.FAIL, 10000, true, "setState | from:LOADING , to:READY");				
+				offerwallIsReady = mMobileCoreClient.waitForLogcatMessage("WebViewWithLoadState", Reporter.FAIL, 10000, true,
+						"setState | from:LOADING , to:READY");
 			}
-			
-			if(!offerwallIsReady) {
+
+			if (!offerwallIsReady) {
 				report.report("showing: " + offerwalls[i].getOwId() + " fail: offerwall not switch to state ready", Reporter.FAIL);
 			} else {
 				report.step("found ready state: click 'Show if ready' button");
@@ -149,24 +166,25 @@ public class GenymotionOperationTests extends SystemTestCase4 {
 				report.step("showing: " + offerwalls[i].getOwId());
 			}
 			report.report("set fiddler json");
+			mMobileCoreClient.fiddlerClient.execute(FiddlerApi.clearInjection("offerwall"));
 			mMobileCoreClient.fiddlerCommand(FiddlerApi.setFeedJsonPath("offerwall", "C:\\automation\\static_json\\offerwall.json"));
-			
 
 			if ((i + 1) == offerwalls.length) {
 				report.report("this wall is the last in the list so we are not setting the next one to anything");
 			} else {
 				report.report("set desired ow_id in fiddler");
-				mMobileCoreClient.fiddlerCommand(FiddlerApi.modifyFeed("offerwall", offerwalls[i + 1].getOwId(), false, offerwalls[i+1].isFilter()));
+				mMobileCoreClient
+						.fiddlerCommand(FiddlerApi.modifyFeed("offerwall", offerwalls[i + 1].getOwId(), offerwalls[i + 1].getOwAdCount(), false, offerwalls[i + 1].isFilter()));
 			}
 			mMobileCoreClient.clearLogcat();
 			mMobileCoreClient.sleep(2000);
 
-			mImageFlowHtmlReport.addTitledImage(offerwalls[i].getOwId(), mAdbConnection.getScreenshotWithAdb(null));
+			mImageFlowHtmlReport.addTitledImage(offerwalls[i].getOwId());
 
-			if(!offerwallIsReady) {
+			if (!offerwallIsReady) {
 				continue;
 			}
-			
+
 			SeeTestElement el1 = new SeeTestElement(ZoneType.NATIVE, "contentDescription=offerwall-webview-1", 0);
 			SeeTestElement el2 = new SeeTestElement(ZoneType.NATIVE, "contentDescription=offerwall-webview-2", 0);
 			if (mMobileCoreClient.isElementFound(el1)) {
@@ -199,46 +217,46 @@ public class GenymotionOperationTests extends SystemTestCase4 {
 		report.report("Offerwall's for \"" + mDeviceName + "\"", mImageFlowHtmlReport.getHtmlReport(), Reporter.PASS, false, true, false, false);
 
 		// TODO - move to after...
-//		mMobileCoreClient.getClient().applicationClearData("com.mobilecore.mctester");
-//		mMobileCoreClient.getClient().applicationClose("com.mobilecore.mctester");
-//		mMobileCoreClient.getClient().applicationClose("com.android.vending");
+		// mMobileCoreClient.getClient().applicationClearData("com.mobilecore.mctester");
+		// mMobileCoreClient.getClient().applicationClose("com.mobilecore.mctester");
+		// mMobileCoreClient.getClient().applicationClose("com.android.vending");
 	}
 
-	//TODO - run this test and verify stability
+	// TODO - run this test and verify stability
 	@Test
-	@TestProperties(name="close offerwall with X button", paramsInclude={"appPackage"})
+	@TestProperties(name = "close offerwall with X button", paramsInclude = { "appPackage" })
 	public void testOfferwallCloseWithXButton() throws Exception {
-		mImageFlowHtmlReport.addTitledImage("before app launch", mAdbConnection.getScreenshotWithAdb(null));
+		mImageFlowHtmlReport.addTitledImage("before app launch");
 		mMobileCoreClient.clearLogcat();
 		mMobileCoreClient.report("launching MCTester");
 		mMobileCoreClient.getClient().launch(appPackage, true, true);
 		mMobileCoreClient.waitForElement(Elements.MCTesterElement.APP_TITLE.getElement(), 10000);
 		report.step("app started");
-		mImageFlowHtmlReport.addTitledImage("app started", mAdbConnection.getScreenshotWithAdb(null));
+		mImageFlowHtmlReport.addTitledImage("app started");
 
 		mMobileCoreClient.waitForLogcatMessage("OfferwallManager", Reporter.FAIL, 15000, true, "mReadyToShowOfferwallFromFlow to true");
 		report.step("offerwall is ready to show");
 		mMobileCoreClient.waitForLogcatMessage("MobileCoreReport", Reporter.FAIL, 15000, true, "ftue_shown");
-		
+
 		mMobileCoreClient.click(Elements.MCTesterElement.SHOW_IF_READY.getElement(), 1);
 		report.step("click 'Show if ready' button");
-		mImageFlowHtmlReport.addTitledImage("click 'Show if ready' button", mAdbConnection.getScreenshotWithAdb(null));
-	
+		mImageFlowHtmlReport.addTitledImage("click 'Show if ready' button");
+
 		mMobileCoreClient.waitForRS(RSType.WALL, FlowType.OFFERWALL, Reporter.FAIL, 10000);
 		mMobileCoreClient.waitForRS(RSType.IMPRESSION, FlowType.OFFERWALL, Reporter.FAIL, 10000);
-		
+
 		mMobileCoreClient.waitForElementAndClick(Elements.OfferwallElement.X_BUTTON.getElement(), 10000, 1);
-		//TODO - verify gone...
+		// TODO - verify gone...
 		mMobileCoreClient.waitForRS(RSType.CLOSE, FlowType.OFFERWALL, Reporter.FAIL, 10000);
-		
+
 		mMobileCoreClient.getClient().applicationClearData("com.mobilecore.mctester");
 		mMobileCoreClient.getClient().applicationClose("com.mobilecore.mctester");
 		mMobileCoreClient.getClient().applicationClose("com.android.vending");
 	}
-	
-	//TODO - run this test and verify stability
+
+	// TODO - run this test and verify stability
 	@Test
-	@TestProperties(name="close offerwall with BACK button", paramsInclude={"appPackage"})
+	@TestProperties(name = "close offerwall with BACK button", paramsInclude = { "appPackage" })
 	public void testOfferwallCloseWithBackButton() throws Exception {
 		mMobileCoreClient.clearLogcat();
 		mMobileCoreClient.report("launching MCTester");
@@ -248,37 +266,39 @@ public class GenymotionOperationTests extends SystemTestCase4 {
 
 		mMobileCoreClient.waitForLogcatMessage("OfferwallManager", Reporter.FAIL, 15000, true, "from:LOADING , to:READY_TO_SHOW");
 		report.step("offerwall is ready to show");
-		
-		//TODO - THIS IS A BUG WORKAROUND -> in this state the wall isn't really ready to show... (all tests)
+
+		// TODO - THIS IS A BUG WORKAROUND -> in this state the wall isn't
+		// really ready to show... (all tests)
 		mMobileCoreClient.report("wait 6 second just in case");
 		mMobileCoreClient.sleep(6000);
 
 		mMobileCoreClient.click(Elements.MCTesterElement.SHOW_IF_READY.getElement(), 1);
 		report.step("click 'Show if ready' button");
 
-		mMobileCoreClient.waitForLogcatMessage("OfferwallManager", Reporter.FAIL ,15000 , true, "from:READY_TO_SHOW , to:SHOWING");
-		
+		mMobileCoreClient.waitForLogcatMessage("OfferwallManager", Reporter.FAIL, 15000, true, "from:READY_TO_SHOW , to:SHOWING");
+
 		mMobileCoreClient.waitForRS(RSType.WALL, FlowType.OFFERWALL, Reporter.FAIL, 10000);
 		mMobileCoreClient.waitForRS(RSType.IMPRESSION, FlowType.OFFERWALL, Reporter.FAIL, 10000);
-		
+
 		mMobileCoreClient.clickBackButton();
 		mMobileCoreClient.waitForRS(RSType.BACK, FlowType.OFFERWALL, Reporter.FAIL, 10000);
-		
+
 		mMobileCoreClient.getClient().applicationClearData("com.mobilecore.mctester");
 		mMobileCoreClient.getClient().applicationClose("com.mobilecore.mctester");
 		mMobileCoreClient.getClient().applicationClose("com.android.vending");
 	}
 
 	@Test
-	@TestProperties(name="offerwall full download flow", paramsInclude = {"appPackage", "installReportTimeout", "uninstallAppDownload"})
+	@TestProperties(name = "offerwall full download flow", paramsInclude = { "appPackage", "installReportTimeout", "uninstallAppDownload" })
 	public void testOfferwallFullDownloadFlow() throws Exception {
+		mImageFlowHtmlReport.addTitledImage("before launche");
 		mMobileCoreClient.clearLogcat();
 		mMobileCoreClient.report("launching MCTester");
 		mMobileCoreClient.getClient().launch(appPackage, true, true);
-	
+
 		mMobileCoreClient.waitForElement(Elements.MCTesterElement.APP_TITLE.getElement(), 10000);
 		report.step("app started");
-	
+		mImageFlowHtmlReport.addTitledImage("app started");
 		mMobileCoreClient.waitForLogcatMessage("OfferwallManager", Reporter.FAIL, 15000, true, "mReadyToShowOfferwallFromFlow to true");
 		report.step("offerwall is ready to show");
 		mMobileCoreClient.waitForLogcatMessage("MobileCoreReport", Reporter.FAIL, 15000, true, "ftue_shown");
@@ -286,53 +306,43 @@ public class GenymotionOperationTests extends SystemTestCase4 {
 		report.step("click 'Show if ready' button");
 		mMobileCoreClient.sleep(3000);
 		mMobileCoreClient.click(Elements.MCTesterElement.SHOW_IF_READY.getElement(), 1);
-		
+
 		mMobileCoreClient.waitForRS(RSType.WALL, FlowType.OFFERWALL, Reporter.FAIL, 10000);
 		mMobileCoreClient.waitForRS(RSType.IMPRESSION, FlowType.OFFERWALL, Reporter.FAIL, 10000);
+		mImageFlowHtmlReport.addTitledImage("after click on show offerwall");
+
+		String appName = mMobileCoreClient.elementGetText(Elements.OfferwallElement.INNER_ITEM_TITTLE.getElement());
 		
-		String clickScript = "var myEvt = document.createEvent('MouseEvents');myEvt.initEvent('click',true,true);document.getElementsByClassName('inner_item').dispatchEvent(myEvt);";
-		report.report("running script!!!!!!!!!!!!!!!!");
-		mMobileCoreClient.getClient().hybridRunJavascript("", 0, clickScript);
-		
-		
-//		String appName = mMobileCoreClient.elementGetText(Elements.OfferwallElement.INNER_ITEM_TITTLE.getElement());
-//
-//		//UGLY FIX TRY
-//		report.report("DEBUG: running fix");
-//		mMobileCoreClient.clickBackButton();
-//		mMobileCoreClient.sleep(3000);
-//		mMobileCoreClient.click(Elements.MCTesterElement.SHOW_IF_READY.getElement(), 1);
-//		mMobileCoreClient.sleep(1000);
-//		mMobileCoreClient.click(Elements.OfferwallElement.INNER_ITEM_TITTLE.getElement(), 1);
-		
-		//mMobileCoreClient.waitForElementAndClick(Elements.OfferwallElement.INNER_ITEM.getElement(), 10000, 1);
-		//report.step("click on application item: " + appName);
+		mMobileCoreClient.click(Elements.OfferwallElement.INNER_ITEM.getElement(), 1);
+
+		report.step("click on application item: " + appName);
 		mMobileCoreClient.waitForRS(RSType.CLICK, FlowType.OFFERWALL, Reporter.FAIL, 10000);
-		
+		mImageFlowHtmlReport.addTitledImage("after click on offer with title : " + appName);
+
 		mMobileCoreClient.waitForRS(RSType.STORE, FlowType.OFFERWALL, Reporter.FAIL, 10000);
 		report.step("navigated to the market");
 
-		//TODO - add "right application verification" (native, text=<app name>) 
-		
-		//TODO - abstraction: make function in Helper class
+		//TODO - add abstraction level to ho 
 		mMobileCoreClient.waitForElementAndClick(Elements.MarketElement.INSTALL_BUTTON.getElement(), 10000, 1);
 		mMobileCoreClient.report("click on INSTALL");
 
+		mImageFlowHtmlReport.addTitledImage("after click install");
+		
 		mMobileCoreClient.waitForElementAndClick(Elements.MarketElement.ACCEPT_BUTTON.getElement(), 10000, 1);
 		mMobileCoreClient.report("click on ACCEPT");
 
+		mImageFlowHtmlReport.addTitledImage("accept page");
 		mMobileCoreClient.waitForElement(Elements.MarketElement.DOWNLOADING_TEXT.getElement(), 10000);
 		mMobileCoreClient.report("start downloading...");
-		mMobileCoreClient.waitForElement(Elements.MarketElement.INSTALLING_TEXT.getElement(), 600000);		
+		mMobileCoreClient.waitForElement(Elements.MarketElement.INSTALLING_TEXT.getElement(), 600000);
 		mMobileCoreClient.report("finish downloading");
 		mMobileCoreClient.report("start instaling...");
 		mMobileCoreClient.waitForElement(Elements.MarketElement.OPEN_BUTTON.getElement(), 600000);
 		mMobileCoreClient.report("finish instaling");
-		// end todo
-		
+
 		mMobileCoreClient.waitForRS(RSType.INSATLL, FlowType.OFFERWALL, Reporter.WARNING, installReportTimeout);
 
-		//TODO - abstraction: make function in Helper class
+		// TODO - abstraction: make function in Helper class
 		mMobileCoreClient.waitForElementAndClick(Elements.MarketElement.UNINSTALL_BUTTON.getElement(), 10000, 1);
 		mMobileCoreClient.report("click UNINSTALL button");
 
@@ -342,24 +352,24 @@ public class GenymotionOperationTests extends SystemTestCase4 {
 
 		mMobileCoreClient.waitForElement(Elements.MarketElement.INSTALL_BUTTON.getElement(), 60000);
 		mMobileCoreClient.report("uninstall finished");
-		//end todo
-		
+		// end todo
+
 		mMobileCoreClient.getClient().applicationClearData("com.mobilecore.mctester");
 		mMobileCoreClient.getClient().applicationClose("com.mobilecore.mctester");
 		mMobileCoreClient.getClient().applicationClose("com.android.vending");
 	}
-	
+
 	@Test
-	@TestProperties(name="stickeez click", paramsInclude = {"appPackage"})
+	@TestProperties(name = "stickeez click", paramsInclude = { "appPackage" })
 	public void testStickeezClick() throws Exception {
 		mMobileCoreClient.clearLogcat();
-		
+		mMobileCoreClient.fiddlerCommand(FiddlerApi.setFeedJsonPath("stickeez", "C:\\automation\\static-json\\stickeez.json"));
 		mMobileCoreClient.report("launching MCTester");
 		mMobileCoreClient.getClient().launch(appPackage, true, true);
-	
+
 		mMobileCoreClient.waitForElement(Elements.MCTesterElement.APP_TITLE.getElement(), 10000);
 		report.step("app started");
-		
+
 		mMobileCoreClient.waitForLogcatMessage("StickeezManager", Reporter.FAIL, 25000, true, "setState | from:STATE_INIT , to:STATE_READY_TO_SHOW");
 		report.step("sticckez is ready to show");
 		mMobileCoreClient.waitForLogcatMessage("MobileCoreReport", Reporter.FAIL, 15000, true, "ftue_shown");
@@ -367,27 +377,31 @@ public class GenymotionOperationTests extends SystemTestCase4 {
 		report.step("click 'Show stickeez' button");
 		mMobileCoreClient.sleep(5000);
 		mMobileCoreClient.click(Elements.MCTesterElement.SHOW_STICKEE.getElement(), 1);
-		mMobileCoreClient.waitForElementAndClick(Elements.StickeezElement.STICKEEZ_HANDLE_CLICKABLE_AREA.getElement(), 1,10000);
+		mMobileCoreClient.waitForElementAndClick(Elements.StickeezElement.STICKEEZ_HANDLE_CLICKABLE_AREA.getElement(), 1, 10000);
 		mMobileCoreClient.waitForElementAndClick(Elements.StickeezElement.STICKEEZ_BANNER_APP_TITLE.getElement(), 1, 10000);
-		
-		
-		
-		//TODO - verify reports for stickeez
-		//mMobileCoreClient.waitForRS(RSType.WALL, FlowType.OFFERWALL, Reporter.FAIL, 10000);
-		//mMobileCoreClient.waitForRS(RSType.IMPRESSION, FlowType.OFFERWALL, Reporter.FAIL, 10000);
-		//String appName = mMobileCoreClient.elementGetText(Elements.OfferwallElement.INNER_ITEM_TITTLE.getElement());
 
-		
-//		mMobileCoreClient.waitForElementAndClick(Elements.OfferwallElement.INNER_ITEM.getElement(), 10000, 1);
-//		report.step("click on application item: " + appName);
-//		mMobileCoreClient.waitForRS(RSType.CLICK, FlowType.OFFERWALL, Reporter.FAIL, 10000);
-//		
-//		mMobileCoreClient.waitForRS(RSType.STORE, FlowType.OFFERWALL, Reporter.FAIL, 10000);
-//		report.step("navigated to the market");
-//
-//		//TODO - add "right application verification" (native, text=<app name>) 
-//		
-//		//TODO - abstraction: make function in Helper class
+		// TODO - verify reports for stickeez
+		// mMobileCoreClient.waitForRS(RSType.WALL, FlowType.OFFERWALL,
+		// Reporter.FAIL, 10000);
+		// mMobileCoreClient.waitForRS(RSType.IMPRESSION, FlowType.OFFERWALL,
+		// Reporter.FAIL, 10000);
+		// String appName =
+		// mMobileCoreClient.elementGetText(Elements.OfferwallElement.INNER_ITEM_TITTLE.getElement());
+
+		// mMobileCoreClient.waitForElementAndClick(Elements.OfferwallElement.INNER_ITEM.getElement(),
+		// 10000, 1);
+		// report.step("click on application item: " + appName);
+		// mMobileCoreClient.waitForRS(RSType.CLICK, FlowType.OFFERWALL,
+		// Reporter.FAIL, 10000);
+		//
+		// mMobileCoreClient.waitForRS(RSType.STORE, FlowType.OFFERWALL,
+		// Reporter.FAIL, 10000);
+		// report.step("navigated to the market");
+		//
+		// //TODO - add "right application verification" (native, text=<app
+		// name>)
+		//
+		// //TODO - abstraction: make function in Helper class
 		mMobileCoreClient.waitForElementAndClick(Elements.MarketElement.INSTALL_BUTTON.getElement(), 10000, 1);
 		mMobileCoreClient.report("click on INSTALL");
 
@@ -396,16 +410,16 @@ public class GenymotionOperationTests extends SystemTestCase4 {
 
 		mMobileCoreClient.waitForElement(Elements.MarketElement.DOWNLOADING_TEXT.getElement(), 10000);
 		mMobileCoreClient.report("start downloading...");
-		mMobileCoreClient.waitForElement(Elements.MarketElement.INSTALLING_TEXT.getElement(), 600000);		
+		mMobileCoreClient.waitForElement(Elements.MarketElement.INSTALLING_TEXT.getElement(), 600000);
 		mMobileCoreClient.report("finish downloading");
 		mMobileCoreClient.report("start instaling...");
 		mMobileCoreClient.waitForElement(Elements.MarketElement.OPEN_BUTTON.getElement(), 600000);
 		mMobileCoreClient.report("finish instaling");
 		// end todo
-		
+
 		mMobileCoreClient.waitForRS(RSType.INSATLL, FlowType.OFFERWALL, Reporter.WARNING, installReportTimeout);
 
-		//TODO - abstraction: make function in Helper class
+		// TODO - abstraction: make function in Helper class
 		mMobileCoreClient.waitForElementAndClick(Elements.MarketElement.UNINSTALL_BUTTON.getElement(), 10000, 1);
 		mMobileCoreClient.report("click UNINSTALL button");
 
@@ -415,21 +429,20 @@ public class GenymotionOperationTests extends SystemTestCase4 {
 
 		mMobileCoreClient.waitForElement(Elements.MarketElement.INSTALL_BUTTON.getElement(), 60000);
 		mMobileCoreClient.report("uninstall finished");
-		//end todo
-		
+		// end todo
+
 		mMobileCoreClient.getClient().applicationClearData("com.mobilecore.mctester");
 		mMobileCoreClient.getClient().applicationClose("com.mobilecore.mctester");
 		mMobileCoreClient.getClient().applicationClose("com.android.vending");
 	}
-	
-	
+
 	@After
 	public void tearDown() throws Exception {
 		if (!isPass()) {
-			mImageFlowHtmlReport.addTitledImage("Failed Here", mAdbConnection.getScreenshotWithAdb(null));
-			report.report("screen flow", mImageFlowHtmlReport.getHtmlReport(), Reporter.PASS, false, true, false, false);
+			mImageFlowHtmlReport.addTitledImage("Failed Here");
 		}
-		mMobileCoreClient.getClient().generateReport();	
+		report.report("screen flow", mImageFlowHtmlReport.getHtmlReport(), Reporter.PASS, false, true, false, false);
+		mMobileCoreClient.getClient().generateReport();
 	}
 
 	// private helper methods (candidate to move to infra)
@@ -451,7 +464,7 @@ public class GenymotionOperationTests extends SystemTestCase4 {
 				continue;
 			}
 			report.report("DEBUG: found conneted device");
-			try{
+			try {
 				report.report("before adding device: " + mMobileCoreClient.getClient().getConnectedDevices());
 				mMobileCoreClient.getClient().addDevice(device.getSerialNumber(), deviceName);
 				report.report("after adding device: " + mMobileCoreClient.getClient().getConnectedDevices());
@@ -471,11 +484,13 @@ public class GenymotionOperationTests extends SystemTestCase4 {
 				String w = mMobileCoreClient.getClient().elementGetProperty("NATIVE", "contentDescription=Slide area.", 0, "width");
 				String h = mMobileCoreClient.getClient().elementGetProperty("NATIVE", "contentDescription=Slide area.", 0, "height");
 				report.report("x: " + x + " y: " + y + " w: " + w + " h: " + h);
-				mMobileCoreClient.getClient().dragCoordinates(Integer.parseInt(w)/2, Integer.parseInt(y) + Integer.parseInt(h)/2, Integer.parseInt(w), Integer.parseInt(y) + Integer.parseInt(h)/2, 1);
-				//mMobileCoreClient.drag(Elements.DeviceElement.ANDROID_LOCK.getElement(), 200, 0);
-				
+				mMobileCoreClient.getClient().dragCoordinates(Integer.parseInt(w) / 2, Integer.parseInt(y) + Integer.parseInt(h) / 2,
+						Integer.parseInt(w), Integer.parseInt(y) + Integer.parseInt(h) / 2, 1);
+				// mMobileCoreClient.drag(Elements.DeviceElement.ANDROID_LOCK.getElement(),
+				// 200, 0);
+
 			} catch (Exception e) {
-				mImageFlowHtmlReport.addTitledImage("unlock screen fial", mAdbConnection.getScreenshotWithAdb(null));
+				mImageFlowHtmlReport.addTitledImage("unlock screen fial");
 				report.report("didn't release lock screen of the device");
 			}
 			done = true;
@@ -543,11 +558,17 @@ public class GenymotionOperationTests extends SystemTestCase4 {
 		return offerwalls;
 	}
 
+	public boolean isInstallApk() {
+		return installApk;
+	}
+
+	public void setInstallApk(boolean installApk) {
+		this.installApk = installApk;
+	}
+
 	@UseProvider(provider = jsystem.extensions.paramproviders.ObjectArrayParameterProvider.class)
 	public void setOfferwalls(OfferwallParams[] offerwalls) {
 		this.offerwalls = offerwalls;
 	}
-	
-	
-	
+
 }
