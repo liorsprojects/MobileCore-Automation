@@ -439,9 +439,9 @@ public class GenymotionOperationTests extends SystemTestCase4 {
 	@After
 	public void tearDown() throws Exception {
 		if (!isPass()) {
-			mImageFlowHtmlReport.addTitledImage("Failed Here");
+		//	mImageFlowHtmlReport.addTitledImage("Failed Here");
 		}
-		report.report("screen flow", mImageFlowHtmlReport.getHtmlReport(), Reporter.PASS, false, true, false, false);
+		//report.report("screen flow", mImageFlowHtmlReport.getHtmlReport(), Reporter.PASS, false, true, false, false);
 		mMobileCoreClient.getClient().generateReport();
 	}
 
