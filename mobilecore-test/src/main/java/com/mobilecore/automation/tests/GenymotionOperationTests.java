@@ -67,7 +67,7 @@ public class GenymotionOperationTests extends SystemTestCase4 {
 			mMobileCoreClient = (MobileCoreClient) system.getSystemObject("mobileCoreClient");
 			mMobileCoreClient.report("initialize mobileCoreClient SystemObject complete");
 		}
-		mImageFlowHtmlReport = new ImageFlowHtmlReport(mAdbConnection);
+		//mImageFlowHtmlReport = new ImageFlowHtmlReport(mAdbConnection);
 		//TODO - add clearing of the fiddler
 	}
 
@@ -289,16 +289,16 @@ public class GenymotionOperationTests extends SystemTestCase4 {
 	}
 
 	@Test
-	@TestProperties(name = "offerwall full download flow", paramsInclude = { "appPackage", "installReportTimeout", "uninstallAppDownload" })
+	@TestProperties(name = "offerwall full download flow", paramsInclude = { "appPackage", "installReportTimeout", "uninstallAppDownload", "offerwalls"})
 	public void testOfferwallFullDownloadFlow() throws Exception {
-		mImageFlowHtmlReport.addTitledImage("before launche");
+		//mImageFlowHtmlReport.addTitledImage("before launche");
 		mMobileCoreClient.clearLogcat();
 		mMobileCoreClient.report("launching MCTester");
 		mMobileCoreClient.getClient().launch(appPackage, true, true);
 
 		mMobileCoreClient.waitForElement(Elements.MCTesterElement.APP_TITLE.getElement(), 10000);
 		report.step("app started");
-		mImageFlowHtmlReport.addTitledImage("app started");
+		//mImageFlowHtmlReport.addTitledImage("app started");
 		mMobileCoreClient.waitForLogcatMessage("OfferwallManager", Reporter.FAIL, 15000, true, "mReadyToShowOfferwallFromFlow to true");
 		report.step("offerwall is ready to show");
 		mMobileCoreClient.waitForLogcatMessage("MobileCoreReport", Reporter.FAIL, 15000, true, "ftue_shown");
@@ -309,7 +309,7 @@ public class GenymotionOperationTests extends SystemTestCase4 {
 
 		mMobileCoreClient.waitForRS(RSType.WALL, FlowType.OFFERWALL, Reporter.FAIL, 10000);
 		mMobileCoreClient.waitForRS(RSType.IMPRESSION, FlowType.OFFERWALL, Reporter.FAIL, 10000);
-		mImageFlowHtmlReport.addTitledImage("after click on show offerwall");
+		//mImageFlowHtmlReport.addTitledImage("after click on show offerwall");
 
 		String appName = mMobileCoreClient.elementGetText(Elements.OfferwallElement.INNER_ITEM_TITTLE.getElement());
 		
@@ -317,7 +317,7 @@ public class GenymotionOperationTests extends SystemTestCase4 {
 
 		report.step("click on application item: " + appName);
 		mMobileCoreClient.waitForRS(RSType.CLICK, FlowType.OFFERWALL, Reporter.FAIL, 10000);
-		mImageFlowHtmlReport.addTitledImage("after click on offer with title : " + appName);
+		//mImageFlowHtmlReport.addTitledImage("after click on offer with title : " + appName);
 
 		mMobileCoreClient.waitForRS(RSType.STORE, FlowType.OFFERWALL, Reporter.FAIL, 10000);
 		report.step("navigated to the market");
@@ -326,12 +326,12 @@ public class GenymotionOperationTests extends SystemTestCase4 {
 		mMobileCoreClient.waitForElementAndClick(Elements.MarketElement.INSTALL_BUTTON.getElement(), 10000, 1);
 		mMobileCoreClient.report("click on INSTALL");
 
-		mImageFlowHtmlReport.addTitledImage("after click install");
+		//mImageFlowHtmlReport.addTitledImage("after click install");
 		
 		mMobileCoreClient.waitForElementAndClick(Elements.MarketElement.ACCEPT_BUTTON.getElement(), 10000, 1);
 		mMobileCoreClient.report("click on ACCEPT");
 
-		mImageFlowHtmlReport.addTitledImage("accept page");
+		//mImageFlowHtmlReport.addTitledImage("accept page");
 		mMobileCoreClient.waitForElement(Elements.MarketElement.DOWNLOADING_TEXT.getElement(), 10000);
 		mMobileCoreClient.report("start downloading...");
 		mMobileCoreClient.waitForElement(Elements.MarketElement.INSTALLING_TEXT.getElement(), 600000);
