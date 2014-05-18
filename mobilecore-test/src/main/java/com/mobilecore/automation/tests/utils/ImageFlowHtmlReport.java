@@ -6,81 +6,45 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import jsystem.extensions.report.html.Report;
+import jsystem.framework.report.ListenerstManager;
+import jsystem.framework.report.Reporter;
+import jsystem.utils.FileUtils;
+
 import com.mobilecore.automation.infra.ADBConnection;
 
 public class ImageFlowHtmlReport {
-	
-	
+
 	private ADBConnection mAdbConnection;
 	private static final String SIMPLE_TITLE_FORMAT = "<p>%s</p>";
 	private static final String SIMPLE_IMG_FORMAT = "<img class=\"screenshot\" src=\"%s\"/>";
 	private static final String BLANK_ROW = "<br/>";
-	private String jqueryLocation;
-	private String jqueryUiLocation;	
-	private String widgetLocation;
-	private String cssLocation;
-	private String cssUiLocation;
-	private String widgetIconLocation;
-	
+	private static final String style = "h3{margin: 0px;padding:0px;}.screenshot{width: 50%;-webkit-box-shadow: 7px 7px 5px 0px rgba(50, 50, 50, 0.75);-moz-box-shadow: 7px 7px 5px 0px rgba(50, 50, 50, 0.75);box-shadow: 7px 7px 5px 0px rgba(50, 50, 50, 0.75);}";
+
 	StringBuilder htmlBody;
 
 	public ImageFlowHtmlReport(ADBConnection adbConnection) throws URISyntaxException {
 		mAdbConnection = adbConnection;
-		URL resourceUrl = getClass().getResource("/jquery-2.0.3.min.js");
-		Path resourcePath = Paths.get(resourceUrl.toURI());
-		jqueryLocation = resourcePath.toFile().getAbsolutePath();
-		
-		resourceUrl = getClass().getResource("/jquery-ui-1.10.4.min.js");
-		resourcePath = Paths.get(resourceUrl.toURI());
-		jqueryUiLocation = resourcePath.toFile().getAbsolutePath();
-		
-		resourceUrl = getClass().getResource("/screenflow.js");
-		resourcePath = Paths.get(resourceUrl.toURI());
-		widgetLocation = resourcePath.toFile().getAbsolutePath();
-		
-		resourceUrl = getClass().getResource("/screenflow.css");
-		resourcePath = Paths.get(resourceUrl.toURI());
-		cssLocation = resourcePath.toFile().getAbsolutePath();
-		
-		resourceUrl = getClass().getResource("/jquery-ui.min.css");
-		resourcePath = Paths.get(resourceUrl.toURI());
-		cssUiLocation = resourcePath.toFile().getAbsolutePath();
-
-		resourceUrl = getClass().getResource("/image.png");
-		resourcePath = Paths.get(resourceUrl.toURI());
-		widgetIconLocation = resourcePath.toFile().getAbsolutePath();
-		
 		htmlBody = new StringBuilder("<h3>Test Screenshot flow</h3>");
-		addScaleButtonWidget();
 	}
-	
+
 	public void addTitledImage(String title) {
 		htmlBody.append(BLANK_ROW);
 		htmlBody.append(String.format(SIMPLE_TITLE_FORMAT, title));
 		try {
-			htmlBody.append(String.format(SIMPLE_IMG_FORMAT, mAdbConnection.getScreenshotWithAdb(null).getAbsoluteFile()));
+			Reporter reporter = ListenerstManager.getInstance();
+			String imageFileName = title.replace(" ", "_") + ".png";
+			String imagePath = reporter.getCurrentTestFolder() + File.separator + imageFileName;
+			FileUtils.copyFile(mAdbConnection.getScreenshotWithAdb(null).getAbsoluteFile().getAbsolutePath(), imagePath);
+			htmlBody.append(String.format(SIMPLE_IMG_FORMAT, imageFileName));
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		htmlBody.append(BLANK_ROW);
 	}
-	
+
 	public String getHtmlReport() {
-		return "<html><head>" +
-				"<link type=\"text/css\" href=\""+ cssUiLocation +"\" rel=\"stylesheet\">" +
-				"<link type=\"text/css\" href=\""+ cssLocation +"\" rel=\"stylesheet\">" +
-				"<script src='" + jqueryLocation +"'></script>" +
-				"<script src='" + jqueryUiLocation +"'></script>" +
-				"<script src='" + widgetLocation +"'></script>" +
-				"</head><body>" + htmlBody.toString() +"</body></html>";
+		return "<html><head>" + "<style>" + style + "</style>" + "</head><body>" + htmlBody.toString() + "</body></html>";
 	}
-	
-	public void addScaleButtonWidget() {
-		String scaleButtonWidget = "<div id=\"masterController\"><table id=\"masterScale\"><tbody><tr id=\"masterScaleHeader\">" +
-                    "<td><img class=\"widgetIcon\" src=\""+ widgetIconLocation +"\"/></td><td><h3> Image Resizer</h3></td></tr>" +
-                    "<tr id=\"contentScale\"><td id=\"scaleValue\"><div id=\"value\">50</div></td><td id=\"scaleSlider\"><div id=\"slider\">"+
-                    "</div></td></tr></tbody></table></div>";
-		htmlBody.append(scaleButtonWidget);
-	}
+
 }

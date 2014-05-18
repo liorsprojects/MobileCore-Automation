@@ -36,6 +36,10 @@ public class GenymotionOperationTests extends SystemTestCase4 {
 	private GenymotionDevice genymotionDevice;
 	private String appPackage;
 	private boolean installApk = true;
+	private String showOfferwallButtonText; 
+	private String showStickeeButtonText; 
+	private String hideStrickeeButtonText; 
+	private String clearDataButtonText; 
 	private OfferwallParams[] offerwalls;/*
 										 * { "original offerwall",
 										 * "1_bnr_avg_green", "1_bnr_avg_white",
@@ -67,7 +71,7 @@ public class GenymotionOperationTests extends SystemTestCase4 {
 			mMobileCoreClient = (MobileCoreClient) system.getSystemObject("mobileCoreClient");
 			mMobileCoreClient.report("initialize mobileCoreClient SystemObject complete");
 		}
-		//mImageFlowHtmlReport = new ImageFlowHtmlReport(mAdbConnection);
+		mImageFlowHtmlReport = new ImageFlowHtmlReport(mAdbConnection);
 		//TODO - add clearing of the fiddler
 	}
 
@@ -128,7 +132,7 @@ public class GenymotionOperationTests extends SystemTestCase4 {
 	}
 
 	@Test
-	@TestProperties(name = "display all offerwalls in all devices", paramsInclude = { "appPackage", "offerwalls" })
+	@TestProperties(name = "display all offerwalls in all devices", paramsInclude = { "appPackage", "offerwalls", "mDeviceName", "showOfferwallButtonText", "clearDataButtonText"})
 	public void testDisplayOfferwallTypes() throws Exception {
 		mMobileCoreClient.clearLogcat();
 
@@ -139,8 +143,10 @@ public class GenymotionOperationTests extends SystemTestCase4 {
 		mMobileCoreClient.fiddlerCommand(FiddlerApi.modifyFeed("offerwall", offerwalls[0].getOwId(), offerwalls[0].getOwAdCount(), false, offerwalls[0].isFilter()));
 
 		mMobileCoreClient.report("launching MCTester");
+		//'{Portrait}'
+		mMobileCoreClient.getClient().sendText("{LandScape}");
 		mMobileCoreClient.getClient().launch(appPackage, true, true);
-		mMobileCoreClient.waitForElement(Elements.MCTesterElement.APP_TITLE.getElement(), 10000);
+		//mMobileCoreClient.waitForElement(Elements.MCTesterElement.APP_TITLE.getElement(), 10000);
 		report.step("app started");
 		mMobileCoreClient.sleep(3000);
 
@@ -148,7 +154,7 @@ public class GenymotionOperationTests extends SystemTestCase4 {
 			throw new Exception("didnt find log that conatains: 'mReadyToShowOfferwallFromFlow to true' after 15000 milliseconds");
 		}
 		report.step("offerwall is ready to show");
-		mMobileCoreClient.waitForLogcatMessage("MobileCoreReport", Reporter.FAIL, 15000, true, "ftue_shown");
+		//mMobileCoreClient.waitForLogcatMessage("MobileCoreReport", Reporter.FAIL, 15000, true, "ftue_shown");
 		boolean offerwallIsReady = true;
 		for (int i = 0; i < offerwalls.length; i++) {
 			if (i == 0) {
@@ -159,6 +165,7 @@ public class GenymotionOperationTests extends SystemTestCase4 {
 			}
 
 			if (!offerwallIsReady) {
+				
 				report.report("showing: " + offerwalls[i].getOwId() + " fail: offerwall not switch to state ready", Reporter.FAIL);
 			} else {
 				report.step("found ready state: click 'Show if ready' button");
@@ -180,7 +187,6 @@ public class GenymotionOperationTests extends SystemTestCase4 {
 			mMobileCoreClient.sleep(2000);
 
 			mImageFlowHtmlReport.addTitledImage(offerwalls[i].getOwId());
-
 			if (!offerwallIsReady) {
 				continue;
 			}
@@ -213,6 +219,9 @@ public class GenymotionOperationTests extends SystemTestCase4 {
 			}
 			mMobileCoreClient.sleep(2000);
 		}
+		
+		mMobileCoreClient.getClient().sendText("{Portrait}");
+		mMobileCoreClient.click(Elements.customElement(ZoneType.NATIVE, "xpath=//*[@text='" + clearDataButtonText + "']", 0), 1);
 
 		report.report("Offerwall's for \"" + mDeviceName + "\"", mImageFlowHtmlReport.getHtmlReport(), Reporter.PASS, false, true, false, false);
 
@@ -439,9 +448,9 @@ public class GenymotionOperationTests extends SystemTestCase4 {
 	@After
 	public void tearDown() throws Exception {
 		if (!isPass()) {
-		//	mImageFlowHtmlReport.addTitledImage("Failed Here");
+			mImageFlowHtmlReport.addTitledImage("Failed Here");
 		}
-		//report.report("screen flow", mImageFlowHtmlReport.getHtmlReport(), Reporter.PASS, false, true, false, false);
+		report.report("screen flow", mImageFlowHtmlReport.getHtmlReport(), Reporter.PASS, false, true, false, false);
 		mMobileCoreClient.getClient().generateReport();
 	}
 
@@ -570,5 +579,39 @@ public class GenymotionOperationTests extends SystemTestCase4 {
 	public void setOfferwalls(OfferwallParams[] offerwalls) {
 		this.offerwalls = offerwalls;
 	}
+
+	public String getClearDataButtonText() {
+		return clearDataButtonText;
+	}
+
+	public void setClearDataButtonText(String clearDataButtonText) {
+		this.clearDataButtonText = clearDataButtonText;
+	}
+
+	public String getShowOfferwallButtonText() {
+		return showOfferwallButtonText;
+	}
+
+	public void setShowOfferwallButtonText(String showOfferwallButtonText) {
+		this.showOfferwallButtonText = showOfferwallButtonText;
+	}
+
+	public String getShowStickeeButtonText() {
+		return showStickeeButtonText;
+	}
+
+	public void setShowStickeeButtonText(String showStickeeButtonText) {
+		this.showStickeeButtonText = showStickeeButtonText;
+	}
+
+	public String getHideStrickeeButtonText() {
+		return hideStrickeeButtonText;
+	}
+
+	public void setHideStrickeeButtonText(String hideStrickeeButtonText) {
+		this.hideStrickeeButtonText = hideStrickeeButtonText;
+	}
+	
+	
 
 }

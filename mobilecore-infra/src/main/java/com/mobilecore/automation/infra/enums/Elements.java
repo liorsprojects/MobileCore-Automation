@@ -108,5 +108,9 @@ public class Elements {
 			return mElement;
 		}
 	}
+	
+	public static SeeTestElement customElement(ZoneType zone, String name, int index) {
+		return new SeeTestElement(zone, name, index);
+	}
 
 }
