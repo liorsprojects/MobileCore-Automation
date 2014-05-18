@@ -1,4 +1,4 @@
-package com.mobilecore.automation.tests.utils;
+package com.mobilecore.automation.infra.Utils;
 
 import java.io.File;
 import java.net.URISyntaxException;

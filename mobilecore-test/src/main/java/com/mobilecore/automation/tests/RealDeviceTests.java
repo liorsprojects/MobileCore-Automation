@@ -12,13 +12,13 @@ import com.android.ddmlib.IDevice;
 import com.mobilecore.automation.infra.ADBConnection;
 import com.mobilecore.automation.infra.MobileCoreClient;
 import com.mobilecore.automation.infra.SeeTestElement;
+import com.mobilecore.automation.infra.Utils.ImageFlowHtmlReport;
 import com.mobilecore.automation.infra.enums.Elements;
 import com.mobilecore.automation.infra.enums.FlowType;
 import com.mobilecore.automation.infra.enums.GenymotionDevice;
 import com.mobilecore.automation.infra.enums.RSType;
 import com.mobilecore.automation.infra.enums.ZoneType;
 import com.mobilecore.automation.infra.fiddler.FiddlerApi;
-import com.mobilecore.automation.tests.utils.ImageFlowHtmlReport;
 
 public class RealDeviceTests extends SystemTestCase4 {
 
