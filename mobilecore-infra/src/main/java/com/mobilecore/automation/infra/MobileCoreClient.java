@@ -96,6 +96,16 @@ public class MobileCoreClient extends SystemObjectImpl {
 		return found;
 	}
 	
+	public String getMobileCoreReport(String filter, int reportOnFail ,long timeout, boolean reportFound, String... messageFilters) throws Exception {
+		report.report("wait for report log message filterd by " + filter + " and contains: " + FormatUtils.stringArrayToString(messageFilters, ","));
+		LogcatReportGetter logcatReportGetter = new LogcatReportGetter();
+		String reportString = logcatReportGetter.wait(filter, timeout, messageFilters); 
+		if(reportFound) {
+			report.report((reportString != null? "" : "didn't ") + "found log contains: " + FormatUtils.stringArrayToString(messageFilters, ", "));
+		}
+		return reportString;
+	}
+	
 	public void waitForRS(RSType rs, FlowType flow, int reportOnFail, long timeout) throws Exception {
 		report.step("waiting for report: RS=\"" + rs.getValue() + "\", Flow=\"" + flow.getValue() + "\"" );
 		if(!waitForLogcatMessage("\"RS\"", reportOnFail ,timeout, false ,rs.getValueAsReportString(), flow.getValueAsReportString())) {

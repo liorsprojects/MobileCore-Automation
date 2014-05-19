@@ -1,35 +1,36 @@
 package com.mobilecore.automation.infra;
 
-import org.json.JSONObject;
-
 import com.mobilecore.automation.infra.interfaces.LogcatListener;
 
 
-public class LogcatMessageWaiter {
+public class LogcatReportGetter {
 
 	boolean mFound = false;
 	LogcatListener mListener;
+	String reportJson;
 
-	public LogcatMessageWaiter() {
+	public LogcatReportGetter() {
 		
 		mListener = new LogcatListener() {
 
 			@Override
-			public void onNotify() {
+			public void onNotify(String reportMessage) {
 				System.out.println("listener is notified");
+				reportJson = reportMessage;
 				mFound = true;
 			}
 
 			@Override
-            public void onNotify(String report) {
-				// not implemented
+            public void onNotify() {
+	            // TODO Auto-generated method stub
+	            
             }
 		};
 	}
 	
-	public boolean wait(String filter, long timeout, String... messageFilters) throws Exception {
+	public String wait(String filter, long timeout, String... messageFilters) throws Exception {
 
-		FindReportTask task = new FindReportTask(filter, messageFilters);
+		GetReportTask task = new GetReportTask(filter, messageFilters);
 		task.setListener(mListener);
 		Thread t = new Thread(task);
 		t.start();
@@ -47,7 +48,7 @@ public class LogcatMessageWaiter {
 			System.out.println("sleep 1000");
 			Thread.sleep(1000);
 		}
-		return mFound;
+		return reportJson;
 	}
 
 }

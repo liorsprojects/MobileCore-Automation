@@ -7,14 +7,14 @@ import java.io.InputStreamReader;
 import com.mobilecore.automation.infra.interfaces.LogcatListener;
 import com.mobilecore.automation.infra.interfaces.ReportLogcatNotifier;
 
-public class FindReportTask implements Runnable, ReportLogcatNotifier {
+public class GetReportTask implements Runnable, ReportLogcatNotifier {
 
 	private String mFilter;
 	private String mSearchParams[];
 	private LogcatListener mLogcatListener;
 	private Process mProccess;
 
-	public FindReportTask(String filter, String... searchParams) {
+	public GetReportTask(String filter, String... searchParams) {
 		this.mFilter = filter;
 		this.mSearchParams = searchParams;
 	}
@@ -36,7 +36,7 @@ public class FindReportTask implements Runnable, ReportLogcatNotifier {
 					System.out.println("========Found report=========");
 					mProccess.destroy();
 					System.out.println("========Proccess destroy=========");
-					notifyListener();
+					notifyListener(line);
 					System.out.println("========After notify listener=========");
 				}
 			}
@@ -64,7 +64,7 @@ public class FindReportTask implements Runnable, ReportLogcatNotifier {
 
 	@Override
 	public void notifyListener() {
-		mLogcatListener.onNotify();
+		//not implemented
 	}
 	
 	public void stop() {
